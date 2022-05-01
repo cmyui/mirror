@@ -1,0 +1,4 @@
+__pycache__/
+.vscode/
+osz2/
+.env
