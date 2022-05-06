@@ -1,9 +1,14 @@
-from typing import Optional, Union
-import mirror.sessions, mirror.services, mirror.config
-from mirror.models.sessions import OsuWebSession
+from __future__ import annotations
 
-from typing import TypedDict
 import asyncio
+from typing import Optional
+from typing import TypedDict
+from typing import Union
+
+import mirror.config
+import mirror.services
+import mirror.sessions
+from mirror.models.sessions import OsuWebSession
 
 LOGIN_BODY_BASE = {
     # assigned at login time,

@@ -1,27 +1,33 @@
 #!/usr/bin/env python3.9
-from enum import IntEnum
-from typing import Any
-from fastapi.responses import FileResponse, Response
-from elasticsearch import AsyncElasticsearch
-import mirror.config
+from __future__ import annotations
+
 import os.path
-import uvicorn
-from fastapi.requests import Request
-from fastapi.applications import FastAPI
-import httpx
-import time
 import random
+import time
+from typing import Any
+from typing import MutableMapping
 
-import mirror.repositories.beatmaps
-import mirror.sessions, mirror.services, mirror.usecases.sessions
-import mirror.usecases.downloads
+import httpx
+import uvicorn
+from elasticsearch import AsyncElasticsearch
+from fastapi.applications import FastAPI
+from fastapi.requests import Request
+from fastapi.responses import FileResponse
+from fastapi.responses import RedirectResponse
+from fastapi.responses import Response
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import RequestResponseEndpoint
+from starlette_exporter import handle_metrics
+from starlette_exporter import PrometheusMiddleware
+
+import mirror.config
+import mirror.models.beatmap_sets
 import mirror.repositories.beatmap_sets
-from starlette_exporter import PrometheusMiddleware, handle_metrics
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
-
-import prometheus_client
-
-prometheus_client.make_asgi_app()
+import mirror.repositories.beatmaps
+import mirror.services
+import mirror.sessions
+import mirror.usecases.downloads
+import mirror.usecases.sessions
 
 # TODO: support for MAX_DISK_USAGE_GB & MAX_RAM_USAGE_GB in config
 
@@ -38,7 +44,9 @@ class ProcessTimeMiddleware(BaseHTTPMiddleware):
     # TODO: can i replace this with prometheus middleware's timing?
 
     async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
+        self,
+        request: Request,
+        call_next: RequestResponseEndpoint,
     ) -> Response:
         if request.url.path == "/metrics":
             return await call_next(request)
@@ -110,17 +118,6 @@ app.add_route("/metrics", handle_metrics)
 # }
 
 
-async def create_elasticsearch_index() -> None:
-    """Ensure all elasticsearch indices used by the server exist."""
-    if not await mirror.services.elastic_client.indices.exists(
-        index=mirror.config.ELASTIC_BEATMAPS_INDEX
-    ):
-        await mirror.services.elastic_client.indices.create(
-            index=mirror.config.ELASTIC_BEATMAPS_INDEX,
-            # body=INDEX_DEFINITION,
-        )
-
-
 @app.on_event("startup")
 async def on_startup() -> None:
 
@@ -130,14 +127,20 @@ async def on_startup() -> None:
     mirror.services.elastic_client = AsyncElasticsearch("http://localhost:9200")
 
     # create elasticsearch index if it doesn't already exist
-    await create_elasticsearch_index()
+    if not await mirror.services.elastic_client.indices.exists(
+        index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+    ):
+        await mirror.services.elastic_client.indices.create(
+            index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+            # body=INDEX_DEFINITION,
+        )
 
     mirror.services.http_client = httpx.AsyncClient()
 
     # connect to a single account now
     if DOWNLOADS_ENABLED:
         osu_session = await mirror.usecases.sessions.osu_login(
-            mirror.config.OSU_ACCOUNTS[0]
+            mirror.config.OSU_ACCOUNTS[0],
         )
         assert osu_session is not None
         mirror.sessions.sessions.append(osu_session)
@@ -158,6 +161,11 @@ async def on_shutdown() -> None:
     await mirror.services.http_client.aclose()
 
     # TODO: logout accounts..? is that weird?
+
+
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/b/{beatmap_id}")
@@ -208,7 +216,7 @@ async def download_beatmap_set(set_id: int):
     )
 
 
-class GameMode(IntEnum):
+class GameMode:
     ALL = -1
     OSU = 0
     TAIKO = 1
@@ -216,8 +224,17 @@ class GameMode(IntEnum):
     MANIA = 3
 
 
-class RankedStatus(IntEnum):
-    ALL = -3
+class CheesegullRankedStatus:
+    NOT_SUBMITTED = -1
+    PENDING = 0
+    UPDATE_AVAILABLE = 1
+    RANKED = 2
+    APPROVED = 3
+    QUALIFIED = 4
+    LOVED = 5
+
+
+class OsuAPIRankedStatus:
     GRAVEYARD = -2
     WORK_IN_PROGRESS = -1
     PENDING = 0
@@ -227,13 +244,29 @@ class RankedStatus(IntEnum):
     LOVED = 4
 
 
+class MirrorRankedStatus(OsuAPIRankedStatus):
+    ALL = -3
+
+
+def osu_api_to_cheesegull_ranked_status(osu_api_status: int) -> int:
+    return {
+        OsuAPIRankedStatus.GRAVEYARD: CheesegullRankedStatus.PENDING,
+        OsuAPIRankedStatus.WORK_IN_PROGRESS: CheesegullRankedStatus.PENDING,
+        OsuAPIRankedStatus.PENDING: CheesegullRankedStatus.PENDING,
+        OsuAPIRankedStatus.RANKED: CheesegullRankedStatus.RANKED,
+        OsuAPIRankedStatus.APPROVED: CheesegullRankedStatus.APPROVED,
+        OsuAPIRankedStatus.QUALIFIED: CheesegullRankedStatus.QUALIFIED,
+        OsuAPIRankedStatus.LOVED: CheesegullRankedStatus.LOVED,
+    }[osu_api_status]
+
+
 @app.get("/search/{query}")
 async def search(
     query: str,
     amount: int = 100,
     offset: int = 0,
-    mode: GameMode = GameMode.OSU,
-    status: RankedStatus = RankedStatus.ALL,
+    mode: int = GameMode.OSU,
+    status: int = MirrorRankedStatus.ALL,
     raw: bool = False,
 ):
     """Search for beatmaps by query string."""
@@ -245,29 +278,50 @@ async def search(
 
     if mode != GameMode.ALL:
         # ensure the mode matches
-        query_conditions.append({"term": {"mode": mode.value}})
+        query_conditions.append({"term": {"mode": mode}})
 
-    if status != RankedStatus.ALL:
+    if status != MirrorRankedStatus.ALL:
         # ensure the ranked status matches
-        query_conditions.append({"term": {"approved": status.value}})
+        query_conditions.append({"term": {"approved": status}})
 
     response = await mirror.services.elastic_client.search(
         index=mirror.config.ELASTIC_BEATMAPS_INDEX,
         query={"bool": {"must": query_conditions}},
-        # aggregations={"sets": {"terms": {"field": "beatmap_set_id"}}},
+        # aggregations={"sets": {"terms": {"field": "beatmapset_id"}}},
         size=amount,
         from_=offset,
     )
 
-    hits = response.body["hits"]["hits"]
-    resp = [hit["_source"] for hit in hits]
+    beatmap_sets: MutableMapping[int, mirror.models.beatmap_sets.BeatmapSet] = {}
+
+    for hit in response.body["hits"]["hits"]:
+        beatmap_data = hit["_source"]
+
+        set_id: int = beatmap_data["beatmapset_id"]
+        if set_id in beatmap_sets:
+            # already have this set, add the beatmap to it
+            beatmap_sets[set_id].beatmaps.append(beatmap_data)
+        else:
+            # create a new set
+            beatmap_sets[set_id] = mirror.models.beatmap_sets.BeatmapSet(
+                id=beatmap_data["beatmapset_id"],
+                favourites=0,
+                star_rating=0,
+                beatmaps=[beatmap_data],
+            )
 
     if raw:
         # pack into the format expected by osu!
         # when searching for maps in osu!direct
-        ...
+        resp_data = bytearray()
 
-    return resp
+        # TODO
+    else:
+        resp_data = [
+            beatmap_set.cheesegull_format() for beatmap_set in beatmap_sets.values()
+        ]
+
+    return resp_data
 
 
 DOWNLOADS_ENABLED = False

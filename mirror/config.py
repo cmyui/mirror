@@ -1,5 +1,8 @@
-from starlette.config import Config
+from __future__ import annotations
+
 from ast import literal_eval
+
+from starlette.config import Config
 
 config = Config(".env")
 

@@ -1,9 +1,14 @@
-from typing import MutableMapping, Optional
+from __future__ import annotations
 
-from mirror.models.beatmap_sets import BeatmapSet
-import mirror.services, mirror.config
-from mirror.models.beatmaps import Beatmap
+from typing import MutableMapping
+from typing import Optional
+
 import orjson
+
+import mirror.config
+import mirror.services
+from mirror.models.beatmap_sets import BeatmapSet
+from mirror.models.beatmaps import Beatmap
 
 id_cache: MutableMapping[int, BeatmapSet] = {}
 
@@ -49,7 +54,6 @@ async def from_id(id: int) -> Optional[BeatmapSet]:
         response_data = orjson.loads(await response.aread())
         if not response_data:
             return None
-
 
         beatmaps: list[Beatmap] = []
 

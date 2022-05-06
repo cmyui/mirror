@@ -1,6 +1,9 @@
-import mirror.sessions
+from __future__ import annotations
+
 import random
+
 import mirror.services
+import mirror.sessions
 
 
 async def download_beatmap_set(beatmap_set_id: int, osz2_path: str) -> bool:

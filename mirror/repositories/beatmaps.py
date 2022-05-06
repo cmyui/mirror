@@ -1,18 +1,24 @@
-import mirror.config
-import mirror.services
-from typing import MutableMapping, Optional, Sequence
-import mirror.models.beatmaps
-from mirror.models.beatmaps import Beatmap
+from __future__ import annotations
+
+from typing import MutableMapping
+from typing import Optional
+from typing import Sequence
+
 import orjson
+
+import mirror.config
+import mirror.models.beatmaps
+import mirror.services
+from mirror.models.beatmaps import Beatmap
 
 
 id_cache: MutableMapping[int, Beatmap] = {}
 md5_cache: MutableMapping[str, Beatmap] = {}
 
 # TODO: where should this go?
-async def getbeatmaps_osuapiv1(**kwargs) -> Sequence[Beatmap]:
+async def get_beatmaps_from_osu_api_v1(**kwargs) -> Sequence[Beatmap]:
     """Fetch a sequence of beatmaps from osu!'s api (v1)."""
-    assert len(kwargs) == 1 and next(iter(kwargs.values())) in ("h", "b", "s")
+    assert len(kwargs) == 1 and next(iter(kwargs.keys())) in ("h", "b", "s")
 
     # map not found in elasticsearch
     # send a response to the osu! api (v1)
@@ -48,15 +54,15 @@ async def from_id(id: int) -> Optional[Beatmap]:
         index=mirror.config.ELASTIC_BEATMAPS_INDEX,
         id=str(id),
     ):
-        response = await mirror.services.elastic_client.get(
+        response = await mirror.services.elastic_client.get_source(
             index=mirror.config.ELASTIC_BEATMAPS_INDEX,
             id=str(id),
         )
 
         # we found the map from elasticsearch
-        beatmap = Beatmap(**response.body["_source"])  # type: ignore
+        beatmap = Beatmap(**response.body)  # type: ignore
     else:
-        beatmaps = await getbeatmaps_osuapiv1(b=id)
+        beatmaps = await get_beatmaps_from_osu_api_v1(b=id)
         assert len(beatmaps) == 1
         beatmap = beatmaps[0]
 
@@ -64,7 +70,7 @@ async def from_id(id: int) -> Optional[Beatmap]:
         await mirror.services.elastic_client.create(
             index=mirror.config.ELASTIC_BEATMAPS_INDEX,
             id=str(id),
-            document=beatmap.dict(),  # TODO: __dict__?
+            document=beatmap.__dict__,  # TODO: __dict__?
         )
 
     # cache the beatmap in ram
@@ -97,7 +103,7 @@ async def from_set_id(set_id: int) -> Sequence[Beatmap]:
     # no maps found in elasticsearch
     # send a response to the osu! api (v1)
     # to fetch up-to-date metadata
-    beatmaps = await getbeatmaps_osuapiv1(s=set_id)
+    beatmaps = await get_beatmaps_from_osu_api_v1(s=set_id)
 
     # add beatmaps to our elasticsearch index
     for beatmap in beatmaps:
@@ -105,7 +111,7 @@ async def from_set_id(set_id: int) -> Sequence[Beatmap]:
         await mirror.services.elastic_client.index(
             index=mirror.config.ELASTIC_BEATMAPS_INDEX,
             id=str(beatmap.beatmap_id),
-            document=beatmap.dict(),
+            document=beatmap.__dict__,
         )
 
         # add beatmap to our cache as well

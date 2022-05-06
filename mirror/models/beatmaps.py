@@ -1,6 +1,29 @@
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Optional
+from typing import TypedDict
+
 from pydantic import BaseModel
+
+
+class BeatmapCheesegull(TypedDict):
+    BeatmapID: int  # ID of the beatmap.
+    ParentSetID: int  # ID of the parent beatmap set.
+    DiffName: str  # Name of the difficulty.
+    FileMD5: str  # MD5 hash of the .osu file.
+    Mode: int  # osu! game mode of this beatmap.
+    BPM: float  # Beats per minute of the song. Probably inaccurate and wrong, and you probably shouldn’t use this for any calculation, just for display.
+    AR: float  # Approach rate.
+    OD: float  # Overall difficulty.
+    CS: float  # Circle size.
+    HP: float  # Health drain.
+    TotalLength: int  # The total length of the song in seconds.
+    HitLength: int  # The length of the part with objects in the beatmap.
+    Playcount: int  # Number of plays on this beatmap.
+    Passcount: int  # Number of passes on this beatmap.
+    MaxCombo: int  # Maximum combo someone can achieve.
+    DifficultyRating: float  # Star difficulty rating of the map. If this is an osu! standard map, this is the star rating for osu! standard. There’s no way to get the star rating for other modes in converted beatmaps.
 
 
 class Beatmap(BaseModel):
@@ -52,3 +75,29 @@ class Beatmap(BaseModel):
     diff_aim: float
     diff_speed: float
     difficultyrating: float
+
+    def cheesegull_format(self) -> BeatmapCheesegull:
+        """\
+        Convert the beatmap set to cheesegull API format.
+
+        https://docs.ripple.moe/docs/cheesegull/cheesegull-api
+        """
+
+        return {
+            "BeatmapID": self.beatmap_id,
+            "ParentSetID": self.beatmapset_id,
+            "DiffName": self.version,
+            "FileMD5": self.file_md5,
+            "Mode": self.mode,
+            "BPM": self.bpm,
+            "AR": self.diff_approach,
+            "OD": self.diff_overall,
+            "CS": self.diff_size,
+            "HP": self.diff_drain,
+            "TotalLength": self.total_length,
+            "HitLength": self.hit_length,
+            "Playcount": self.playcount,
+            "Passcount": self.passcount,
+            "MaxCombo": self.max_combo,
+            "DifficultyRating": self.difficultyrating,
+        }

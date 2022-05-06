@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from elasticsearch import AsyncElasticsearch
 from httpx import AsyncClient
 
