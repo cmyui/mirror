@@ -8,6 +8,12 @@ from pydantic import BaseModel
 
 
 class BeatmapCheesegull(TypedDict):
+    """\
+    A model representing a beatmap set from a cheesegull API.
+
+    https://docs.ripple.moe/docs/cheesegull/cheesegull-api
+    """
+
     BeatmapID: int  # ID of the beatmap.
     ParentSetID: int  # ID of the parent beatmap set.
     DiffName: str  # Name of the difficulty.
@@ -77,12 +83,7 @@ class Beatmap(BaseModel):
     difficultyrating: float
 
     def cheesegull_format(self) -> BeatmapCheesegull:
-        """\
-        Convert the beatmap set to cheesegull API format.
-
-        https://docs.ripple.moe/docs/cheesegull/cheesegull-api
-        """
-
+        """Convert the beatmap set to cheesegull API format."""
         return {
             "BeatmapID": self.beatmap_id,
             "ParentSetID": self.beatmapset_id,

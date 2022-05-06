@@ -6,7 +6,9 @@ from typing import TypedDict
 
 from pydantic import BaseModel
 
-from mirror.enums.ranked_statuses import osu_api_to_cheesegull_status
+from mirror.enums.ranked_statuses import (
+    osu_api_to_cheesegull_status,
+)
 from mirror.models.beatmaps import Beatmap  # TODO: fuck
 
 if TYPE_CHECKING:
@@ -14,6 +16,12 @@ if TYPE_CHECKING:
 
 
 class BeatmapSetCheesegull(TypedDict):
+    """\
+    A model representing a beatmap set from a cheesegull API.
+
+    https://docs.ripple.moe/docs/cheesegull/cheesegull-api
+    """
+
     SetID: int  # ": 1668433,
     ChildrenBeatmaps: list[BeatmapCheesegull]  # ": [],
     RankedStatus: int  # ": -2,
@@ -55,12 +63,7 @@ class BeatmapSet(BaseModel):
     beatmaps: list[Beatmap]
 
     def cheesegull_format(self) -> BeatmapSetCheesegull:
-        """\
-        Convert the beatmap set to cheesegull API format.
-
-        https://docs.ripple.moe/docs/cheesegull/cheesegull-api
-        """
-
+        """Convert the beatmap set to cheesegull API format."""
         first_beatmap = self.beatmaps[0]  # is this what other mirrors do?
 
         return {
@@ -83,7 +86,6 @@ class BeatmapSet(BaseModel):
 
     def osu_direct_format(self) -> bytes:
         """Convert the beatmap set to osu!direct format."""
-
         # create a list of difficult names sorted by difficulty
         # '[5.19⭐] Insane {cs: 6.0 / od: 7.0 / ar: 7.0 / hp: 2.0}@0'
         sorted_beatmaps = sorted(self.beatmaps, key=lambda m: m.difficultyrating)
