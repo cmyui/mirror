@@ -28,6 +28,7 @@ import mirror.services
 import mirror.sessions
 import mirror.usecases.downloads
 import mirror.usecases.sessions
+from mirror.enums.ranked_statuses import MirrorRankedStatus
 
 # TODO: support for MAX_DISK_USAGE_GB & MAX_RAM_USAGE_GB in config
 
@@ -224,42 +225,6 @@ class GameMode:
     MANIA = 3
 
 
-class CheesegullRankedStatus:
-    NOT_SUBMITTED = -1
-    PENDING = 0
-    UPDATE_AVAILABLE = 1
-    RANKED = 2
-    APPROVED = 3
-    QUALIFIED = 4
-    LOVED = 5
-
-
-class OsuAPIRankedStatus:
-    GRAVEYARD = -2
-    WORK_IN_PROGRESS = -1
-    PENDING = 0
-    RANKED = 1
-    APPROVED = 2
-    QUALIFIED = 3
-    LOVED = 4
-
-
-class MirrorRankedStatus(OsuAPIRankedStatus):
-    ALL = -3
-
-
-def osu_api_to_cheesegull_ranked_status(osu_api_status: int) -> int:
-    return {
-        OsuAPIRankedStatus.GRAVEYARD: CheesegullRankedStatus.PENDING,
-        OsuAPIRankedStatus.WORK_IN_PROGRESS: CheesegullRankedStatus.PENDING,
-        OsuAPIRankedStatus.PENDING: CheesegullRankedStatus.PENDING,
-        OsuAPIRankedStatus.RANKED: CheesegullRankedStatus.RANKED,
-        OsuAPIRankedStatus.APPROVED: CheesegullRankedStatus.APPROVED,
-        OsuAPIRankedStatus.QUALIFIED: CheesegullRankedStatus.QUALIFIED,
-        OsuAPIRankedStatus.LOVED: CheesegullRankedStatus.LOVED,
-    }[osu_api_status]
-
-
 @app.get("/search/{query}")
 async def search(
     query: str,
@@ -287,7 +252,6 @@ async def search(
     response = await mirror.services.elastic_client.search(
         index=mirror.config.ELASTIC_BEATMAPS_INDEX,
         query={"bool": {"must": query_conditions}},
-        # aggregations={"sets": {"terms": {"field": "beatmapset_id"}}},
         size=amount,
         from_=offset,
     )
@@ -315,7 +279,10 @@ async def search(
         # when searching for maps in osu!direct
         resp_data = bytearray()
 
-        # TODO
+        for beatmap_set in beatmap_sets.values():
+            resp_data += beatmap_set.osu_direct_format()
+
+        resp_data = Response(content=bytes(resp_data))
     else:
         resp_data = [
             beatmap_set.cheesegull_format() for beatmap_set in beatmap_sets.values()
