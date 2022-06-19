@@ -102,11 +102,11 @@ class BeatmapSet(BaseModel):
         first_beatmap = sorted_beatmaps[0]
 
         # b'1141.osz|FAIRY FORE|Vivid|Hitoshirenu Shourai|1|10.0|2007-11-01 05:09:15|141|0|False|0|0|0|[5.19⭐] Insane {cs: 6.0 / od: 7.0 / ar: 7.0 / hp: 2.0}@0'
-        return str(len(self.beatmaps)).encode() + (
+        return (
             (
                 "{beatmapset_id}.osz|{artist}|{title}|{creator}|"
                 "{approved}|10.0|{last_update}|{beatmapset_id}|"
-                "0|{video}|0|0|0|{diffs}"  # 0s are threadid, has_story,
+                "0|{video}|0|0|0|{diffs}\n"  # 0s are threadid, has_story,
                 # filesize, filesize_novid.
             )
             .format(

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import os.path
 from typing import Any
 from typing import MutableMapping
@@ -11,6 +12,7 @@ from fastapi.routing import APIRouter
 
 import mirror.config
 import mirror.models.beatmap_sets
+import mirror.models.beatmaps
 import mirror.repositories.beatmap_sets
 import mirror.repositories.beatmaps
 import mirror.services
@@ -35,6 +37,11 @@ async def get_beatmap_metadata(beatmap_id: int):
     beatmap = await mirror.repositories.beatmaps.from_id(beatmap_id)
     if beatmap is None:
         return {"error": f"beatmap {beatmap_id} not found"}
+
+    # make sure we retrieve all set information
+    # TODO: we need to make sure we don't end up with
+    #       beatmaps which don't have all difficulties
+    asyncio.create_task(mirror.repositories.beatmaps.from_set_id(beatmap.beatmapset_id))
 
     return beatmap
 
@@ -93,18 +100,18 @@ class GameMode:
 @router.get("/search")
 async def search(
     query: str,
-    amount: int = 100,
-    offset: int = 0,
+    page: int,  # 100 results / page
     mode: int = GameMode.OSU,
     status: int = MirrorRankedStatus.ALL,
     osu_direct: bool = False,
 ):
     """Search for beatmaps by query string."""
 
-    query_conditions: list[dict[str, Any]] = [
+    query_conditions: list[dict[str, Any]] = []
+
+    if query != "Newest":
         # match the query string against any fields
-        {"query_string": {"query": query}},
-    ]
+        query_conditions.append({"query_string": {"query": query}})
 
     if mode != GameMode.ALL:
         # ensure the mode matches
@@ -117,23 +124,23 @@ async def search(
     response = await mirror.services.elastic_client.search(
         index=mirror.config.ELASTIC_BEATMAPS_INDEX,
         query={"bool": {"must": query_conditions}},
-        size=amount,
-        from_=offset,
+        size=100,
+        from_=page * 100,
     )
 
     beatmap_sets: MutableMapping[int, mirror.models.beatmap_sets.BeatmapSet] = {}
 
     for hit in response.body["hits"]["hits"]:
-        beatmap_data = hit["_source"]
+        beatmap_data = mirror.models.beatmaps.Beatmap(**hit["_source"])
 
-        set_id: int = beatmap_data["beatmapset_id"]
+        set_id = beatmap_data.beatmapset_id
         if set_id in beatmap_sets:
             # already have this set, add the beatmap to it
             beatmap_sets[set_id].beatmaps.append(beatmap_data)
         else:
             # create a new set
             beatmap_sets[set_id] = mirror.models.beatmap_sets.BeatmapSet(
-                id=beatmap_data["beatmapset_id"],
+                id=set_id,
                 favourites=0,
                 star_rating=0,
                 beatmaps=[beatmap_data],

@@ -76,10 +76,10 @@ class Beatmap(BaseModel):
     audio_unavailable: bool
     playcount: int
     passcount: int
-    packs: str  # TODO csv
-    max_combo: int
-    diff_aim: float
-    diff_speed: float
+    packs: Optional[str]  # TODO csv
+    max_combo: Optional[int]
+    diff_aim: Optional[float]
+    diff_speed: Optional[float]
     difficultyrating: float
 
     def cheesegull_format(self) -> BeatmapCheesegull:
@@ -99,6 +99,6 @@ class Beatmap(BaseModel):
             "HitLength": self.hit_length,
             "Playcount": self.playcount,
             "Passcount": self.passcount,
-            "MaxCombo": self.max_combo,
+            "MaxCombo": self.max_combo or 0,  # TODO: what to do here?
             "DifficultyRating": self.difficultyrating,
         }

@@ -101,7 +101,7 @@ async def from_set_id(set_id: int) -> Sequence[Beatmap]:
         return [hit["_source"] for hit in hits]
 
     # no maps found in elasticsearch
-    # send a response to the osu! api (v1)
+    # send a request to the osu! api (v1)
     # to fetch up-to-date metadata
     beatmaps = await get_beatmaps_from_osu_api_v1(s=set_id)
 
