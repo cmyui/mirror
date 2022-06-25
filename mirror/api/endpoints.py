@@ -4,6 +4,7 @@ import asyncio
 import os.path
 from typing import Any
 from typing import MutableMapping
+from typing import Optional
 
 from fastapi.responses import FileResponse
 from fastapi.responses import RedirectResponse
@@ -99,8 +100,9 @@ class GameMode:
 
 @router.get("/search")
 async def search(
-    query: str,
-    page: int,  # 100 results / page
+    query: Optional[str],
+    amount: int,
+    offset: int,
     mode: int = GameMode.OSU,
     status: int = MirrorRankedStatus.ALL,
     osu_direct: bool = False,
@@ -109,7 +111,7 @@ async def search(
 
     query_conditions: list[dict[str, Any]] = []
 
-    if query != "Newest":
+    if query is not None:
         # match the query string against any fields
         query_conditions.append({"query_string": {"query": query}})
 
@@ -124,8 +126,8 @@ async def search(
     response = await mirror.services.elastic_client.search(
         index=mirror.config.ELASTIC_BEATMAPS_INDEX,
         query={"bool": {"must": query_conditions}},
-        size=100,
-        from_=page * 100,
+        size=max(amount, 100),  # TODO: should i max() here?
+        from_=offset,
     )
 
     beatmap_sets: MutableMapping[int, mirror.models.beatmap_sets.BeatmapSet] = {}
