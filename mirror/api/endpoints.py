@@ -100,9 +100,9 @@ class GameMode:
 
 @router.get("/search")
 async def search(
-    query: Optional[str],
-    amount: int,
-    offset: int,
+    query: Optional[str] = None,
+    amount: int = 100,
+    offset: int = 0,
     mode: int = GameMode.OSU,
     status: int = MirrorRankedStatus.ALL,
     osu_direct: bool = False,
