@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import MutableMapping
 from typing import Optional
 from typing import Sequence
@@ -35,7 +36,24 @@ async def get_beatmaps_from_osu_api_v1(**kwargs) -> Sequence[Beatmap]:
     if not response_data:
         return []
 
-    return [Beatmap(**beatmap_data) for beatmap_data in response_data]
+    # TODO: clean this up once we have a better understanding of the behaviour
+    beatmaps = []
+    for beatmap_data in response_data:
+        if beatmap_data["beatmapset_id"] is None:
+            logging.info(f"the osu!api returned a null set for {kwargs}")
+            continue
+
+        try:
+            beatmap = Beatmap(**beatmap_data)
+        except:
+            import traceback
+
+            traceback.print_exc()
+            # breakpoint()
+        else:
+            beatmaps.append(beatmap)
+
+    return beatmaps
 
 
 async def from_id(id: int) -> Optional[Beatmap]:
