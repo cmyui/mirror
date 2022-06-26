@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 
 import httpx
@@ -31,8 +32,8 @@ async def main() -> int:
             beatmaps = await mirror.repositories.beatmaps.from_set_id(set_id)
             end_time = time.perf_counter_ns()
 
-            print(
-                f"Fetched ({len(beatmaps)}) from set {set_id} in {(end_time - start_time)/1e6}ms",
+            logging.info(
+                f"Fetched ({len(beatmaps)} maps) from set {set_id} in {(end_time - start_time)/1e6}ms",
             )
 
             await asyncio.sleep(REQUEST_INTERVAL)

@@ -1,7 +1,16 @@
 #!/usr/bin/env python3.9
 from __future__ import annotations
 
+import logging
+
 import uvicorn
+
+from mirror import config
+
+logging.basicConfig(
+    level=config.LOG_LEVEL,
+    format="%(asctime)s %(message)s",
+)
 
 
 def main() -> int:

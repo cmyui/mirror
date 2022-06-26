@@ -14,3 +14,6 @@ OSU_ACCOUNTS = config.get("OSU_ACCOUNTS", cast=literal_eval)  # downloads
 OSU_API_KEY = config.get("OSU_API_KEY")  # metadata
 
 DOWNLOADS_ENABLED = config.get("DOWNLOADS_ENABLED", cast=literal_eval)
+
+# https://docs.python.org/3/library/logging.html#levels
+LOG_LEVEL = config.get("LOG_LEVEL", cast=int)

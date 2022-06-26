@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import random
 
 import httpx
@@ -60,7 +61,7 @@ def init_events(app: FastAPI) -> None:
         # must have at least 1 account configured for downloads to work
         downloads_available = len(mirror.config.OSU_ACCOUNTS) > 0
         if mirror.config.DOWNLOADS_ENABLED and not downloads_available:
-            print("WARNING: no osu! accounts configured, downloads will not work")
+            logging.warning("no osu! accounts configured, downloads will not work")
             mirror.config.DOWNLOADS_ENABLED = False
 
         # connect to a single account now

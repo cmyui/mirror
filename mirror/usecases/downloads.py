@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import random
 
 import mirror.services
@@ -24,12 +25,13 @@ async def download_beatmap_set(beatmap_set_id: int, osz2_path: str) -> bool:
     # TODO: handle 404?
 
     if response.status_code != 200:
-        print(f"download failed with {response.status_code}")
-        print(response_body.decode())
-
+        logging.error(
+            f"download failed with {response.status_code}\n\n"
+            f"{response_body.decode()}",
+        )
         return False
 
-    print("downloaded beatmap set", beatmap_set_id)
+    logging.info(f"downloaded beatmap set {beatmap_set_id}")
 
     with open(osz2_path, "wb") as f:
         f.write(response_body)

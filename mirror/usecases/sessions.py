@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Optional
 from typing import TypedDict
 from typing import Union
@@ -68,11 +69,11 @@ async def osu_login(osu_account: OsuAccount) -> Optional[OsuWebSession]:
 
     if response.status_code != 200:
         # TODO: should we try to login again any time soon?
-        print(f"login failed with {response.status_code}")
+        logging.error(f"login failed with {response.status_code}")
 
         return None
 
-    print("logged in as", osu_account["username"])
+    logging.info("logged in as", osu_account["username"])
 
     return OsuWebSession(
         username=osu_account["username"],
