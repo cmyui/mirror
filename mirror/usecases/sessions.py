@@ -73,7 +73,7 @@ async def osu_login(osu_account: OsuAccount) -> Optional[OsuWebSession]:
 
         return None
 
-    logging.info("logged in as", osu_account["username"])
+    logging.info(f"logged in as {osu_account['username']}")
 
     return OsuWebSession(
         username=osu_account["username"],
