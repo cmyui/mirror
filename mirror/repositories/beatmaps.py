@@ -3,7 +3,6 @@ from __future__ import annotations
 import logging
 from typing import MutableMapping
 from typing import Optional
-from typing import Sequence
 
 import orjson
 
@@ -17,7 +16,7 @@ id_cache: MutableMapping[int, Beatmap] = {}
 md5_cache: MutableMapping[str, Beatmap] = {}
 
 # TODO: where should this go?
-async def get_beatmaps_from_osu_api_v1(**kwargs) -> Sequence[Beatmap]:
+async def get_beatmaps_from_osu_api_v1(**kwargs) -> list[Beatmap]:
     """Fetch a sequence of beatmaps from osu!'s api (v1)."""
     assert len(kwargs) == 1 and next(iter(kwargs.keys())) in ("h", "b", "s")
 
@@ -103,7 +102,7 @@ async def from_md5(md5: int) -> Optional[Beatmap]:
     ...
 
 
-async def from_set_id(set_id: int) -> Sequence[Beatmap]:
+async def from_set_id(set_id: int) -> list[Beatmap]:
     """\
     Fetch all beatmaps in a set from it's set id.
 
