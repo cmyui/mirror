@@ -12,6 +12,11 @@ import mirror.config
 import mirror.repositories.beatmaps
 import mirror.services
 
+logging.basicConfig(
+    level=mirror.config.LOG_LEVEL,
+    format="%(asctime)s %(message)s",
+)
+
 REQUEST_INTERVAL = 60 / 200  # 1s / reqs
 
 

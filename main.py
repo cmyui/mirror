@@ -5,10 +5,10 @@ import logging
 
 import uvicorn
 
-from mirror import config
+import mirror.config
 
 logging.basicConfig(
-    level=config.LOG_LEVEL,
+    level=mirror.config.LOG_LEVEL,
     format="%(asctime)s %(message)s",
 )
 
