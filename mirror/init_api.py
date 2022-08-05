@@ -20,10 +20,6 @@ import mirror.usecases.sessions
 from mirror.api import endpoints
 from mirror.api.middlewares import ProcessTimeMiddleware
 
-app = FastAPI()
-
-app.include_router(endpoints.router)
-
 
 def init_middlewares(app: FastAPI) -> None:
     """Initialize the app's middlewares."""
