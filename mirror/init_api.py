@@ -100,6 +100,12 @@ def init_api() -> FastAPI:
     """Initialize the API."""
     app = FastAPI()
 
+    # init logging
+    logging.basicConfig(
+        level=mirror.config.LOG_LEVEL,
+        format="%(asctime)s %(message)s",
+    )
+
     init_middlewares(app)
     init_exception_handlers(app)
     init_events(app)
