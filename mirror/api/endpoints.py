@@ -124,7 +124,7 @@ async def search(
         query_conditions.append({"term": {"approved": status}})
 
     response = await mirror.services.elastic_client.search(
-        index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+        index=mirror.config.BEATMAPS_INDEX,
         query={"bool": {"must": query_conditions}},
         size=max(amount, 100),  # TODO: should i max() here?
         from_=offset,

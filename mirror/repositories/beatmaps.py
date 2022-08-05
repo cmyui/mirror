@@ -68,11 +68,11 @@ async def from_id(id: int) -> Optional[Beatmap]:
 
     # fetch the beatmap from elasticsearch if possible
     if await mirror.services.elastic_client.exists(
-        index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+        index=mirror.config.BEATMAPS_INDEX,
         id=str(id),
     ):
         response = await mirror.services.elastic_client.get_source(
-            index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+            index=mirror.config.BEATMAPS_INDEX,
             id=str(id),
         )
 
@@ -85,7 +85,7 @@ async def from_id(id: int) -> Optional[Beatmap]:
 
         # save the beatmap into our elasticsearch index
         await mirror.services.elastic_client.create(
-            index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+            index=mirror.config.BEATMAPS_INDEX,
             id=str(id),
             document=beatmap.__dict__,  # TODO: __dict__?
         )
@@ -110,7 +110,7 @@ async def from_set_id(set_id: int) -> list[Beatmap]:
     """
 
     response = await mirror.services.elastic_client.search(
-        index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+        index=mirror.config.BEATMAPS_INDEX,
         query={"term": {"beatmapset_id": set_id}},
     )
 
@@ -126,7 +126,7 @@ async def from_set_id(set_id: int) -> list[Beatmap]:
     for beatmap in beatmaps:
         # TODO: use `elastic_client.bulk` to do all in 1 conn?
         await mirror.services.elastic_client.index(
-            index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+            index=mirror.config.BEATMAPS_INDEX,
             id=str(beatmap.beatmap_id),
             document=beatmap.__dict__,
         )

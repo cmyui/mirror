@@ -22,11 +22,11 @@ REQUEST_INTERVAL = 60 / 200  # 1s / reqs
 
 async def main() -> int:
     async with (
-        AsyncElasticsearch("http://localhost:9200") as mirror.services.elastic_client,
+        AsyncElasticsearch(f"http://{mirror.config.ELASTIC_HOST}:{mirror.config.ELASTIC_PORT}") as mirror.services.elastic_client,
         httpx.AsyncClient() as mirror.services.http_client,
     ):
         resp = await mirror.services.elastic_client.search(
-            index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+            index=mirror.config.BEATMAPS_INDEX,
             aggregations={"highest_set_id": {"max": {"field": "beatmapset_id"}}},
         )
 

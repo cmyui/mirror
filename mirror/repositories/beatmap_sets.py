@@ -26,11 +26,11 @@ async def from_id(id: int) -> Optional[BeatmapSet]:
 
     # fetch the beatmap set from elasticsearch if possible
     if await mirror.services.elastic_client.exists(
-        index=mirror.config.ELASTIC_BEATMAP_SETS_INDEX,
+        index=mirror.config.BEATMAP_SETS_INDEX,
         id=str(id),
     ):
         response = await mirror.services.elastic_client.get(
-            index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+            index=mirror.config.BEATMAPS_INDEX,
             id=str(id),
         )
 
@@ -65,7 +65,7 @@ async def from_id(id: int) -> Optional[BeatmapSet]:
 
         # save the beatmap set into our elasticsearch index
         # await mirror.services.elastic_client.create(
-        #     index=mirror.config.ELASTIC_BEATMAP_SETS_INDEX,
+        #     index=mirror.config.BEATMAP_SETS_INDEX,
         #     id=str(id),
         #     document=beatmap_set.dict(),  # TODO: __dict__?
         # )

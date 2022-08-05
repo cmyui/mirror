@@ -41,14 +41,16 @@ def init_events(app: FastAPI) -> None:
         # TODO: setup basic elasticsearch security features
         # https://www.elastic.co/guide/en/elasticsearch/reference/7.17/security-minimal-setup.html
 
-        mirror.services.elastic_client = AsyncElasticsearch("http://localhost:9200")
+        mirror.services.elastic_client = AsyncElasticsearch(
+            f"http://{mirror.config.ELASTIC_HOST}:{mirror.config.ELASTIC_PORT}"
+        )
 
         # create elasticsearch index if it doesn't already exist
         if not await mirror.services.elastic_client.indices.exists(
-            index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+            index=mirror.config.BEATMAPS_INDEX,
         ):
             await mirror.services.elastic_client.indices.create(
-                index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+                index=mirror.config.BEATMAPS_INDEX,
                 # body=INDEX_DEFINITION,
             )
 
