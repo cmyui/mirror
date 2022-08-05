@@ -13,6 +13,8 @@ RUN pip install -r /requirements.txt
 COPY scripts /scripts
 RUN chmod u+x /scripts/*
 
+RUN ln -s /scripts/wait-for-it.sh /usr/local/bin/wait-for-it
+
 COPY mirror/ /srv/root
 
 EXPOSE 80
