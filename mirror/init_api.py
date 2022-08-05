@@ -20,10 +20,6 @@ import mirror.usecases.sessions
 from mirror.api import endpoints
 from mirror.api.middlewares import ProcessTimeMiddleware
 
-app = FastAPI()
-
-app.include_router(endpoints.router)
-
 
 def init_middlewares(app: FastAPI) -> None:
     """Initialize the app's middlewares."""
@@ -45,14 +41,16 @@ def init_events(app: FastAPI) -> None:
         # TODO: setup basic elasticsearch security features
         # https://www.elastic.co/guide/en/elasticsearch/reference/7.17/security-minimal-setup.html
 
-        mirror.services.elastic_client = AsyncElasticsearch("http://localhost:9200")
+        mirror.services.elastic_client = AsyncElasticsearch(
+            f"http://{mirror.config.ELASTIC_HOST}:{mirror.config.ELASTIC_PORT}"
+        )
 
         # create elasticsearch index if it doesn't already exist
         if not await mirror.services.elastic_client.indices.exists(
-            index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+            index=mirror.config.BEATMAPS_INDEX,
         ):
             await mirror.services.elastic_client.indices.create(
-                index=mirror.config.ELASTIC_BEATMAPS_INDEX,
+                index=mirror.config.BEATMAPS_INDEX,
                 # body=INDEX_DEFINITION,
             )
 
@@ -99,6 +97,12 @@ def init_endpoints(app: FastAPI) -> None:
 def init_api() -> FastAPI:
     """Initialize the API."""
     app = FastAPI()
+
+    # init logging
+    logging.basicConfig(
+        level=mirror.config.LOG_LEVEL,
+        format="%(asctime)s %(message)s",
+    )
 
     init_middlewares(app)
     init_exception_handlers(app)
