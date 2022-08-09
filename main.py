@@ -16,7 +16,7 @@ logging.basicConfig(
 def main() -> int:
     # run the server
     uvicorn.run(
-        "mirror.init_api:asgi_app",
+        "mirror.api.rest.init_api:asgi_app",
         host="127.0.0.1",
         port=4378,
         reload=True,
