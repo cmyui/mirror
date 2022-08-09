@@ -6,11 +6,8 @@ from typing import Optional
 
 import orjson
 
-import mirror.config
-import mirror.models.beatmaps
-import mirror.services
-from mirror.models.beatmaps import Beatmap
-
+from app import config, services
+from app.models.beatmaps import Beatmap
 
 id_cache: MutableMapping[int, Beatmap] = {}
 md5_cache: MutableMapping[str, Beatmap] = {}
@@ -23,9 +20,9 @@ async def get_beatmaps_from_osu_api_v1(**kwargs) -> list[Beatmap]:
     # map not found in elasticsearch
     # send a response to the osu! api (v1)
     # to fetch it's up-to-date metadata
-    response = await mirror.services.http_client.get(
+    response = await services.http_client.get(
         "https://osu.ppy.sh/api/get_beatmaps",
-        params={"k": mirror.config.OSU_API_KEY, **kwargs},
+        params={"k": config.OSU_API_KEY, **kwargs},
     )
     if response.status_code != 200:
         return []
@@ -67,12 +64,12 @@ async def from_id(id: int) -> Optional[Beatmap]:
         return beatmap
 
     # fetch the beatmap from elasticsearch if possible
-    if await mirror.services.elastic_client.exists(
-        index=mirror.config.BEATMAPS_INDEX,
+    if await services.elastic_client.exists(
+        index=config.BEATMAPS_INDEX,
         id=str(id),
     ):
-        response = await mirror.services.elastic_client.get_source(
-            index=mirror.config.BEATMAPS_INDEX,
+        response = await services.elastic_client.get_source(
+            index=config.BEATMAPS_INDEX,
             id=str(id),
         )
 
@@ -84,8 +81,8 @@ async def from_id(id: int) -> Optional[Beatmap]:
         beatmap = beatmaps[0]
 
         # save the beatmap into our elasticsearch index
-        await mirror.services.elastic_client.create(
-            index=mirror.config.BEATMAPS_INDEX,
+        await services.elastic_client.create(
+            index=config.BEATMAPS_INDEX,
             id=str(id),
             document=beatmap.__dict__,  # TODO: __dict__?
         )
@@ -109,8 +106,8 @@ async def from_set_id(set_id: int) -> list[Beatmap]:
     https://github.com/ppy/osu-api/wiki#apiget_beatmaps
     """
 
-    response = await mirror.services.elastic_client.search(
-        index=mirror.config.BEATMAPS_INDEX,
+    response = await services.elastic_client.search(
+        index=config.BEATMAPS_INDEX,
         query={"term": {"beatmapset_id": set_id}},
     )
 
@@ -125,8 +122,8 @@ async def from_set_id(set_id: int) -> list[Beatmap]:
     # add beatmaps to our elasticsearch index
     for beatmap in beatmaps:
         # TODO: use `elastic_client.bulk` to do all in 1 conn?
-        await mirror.services.elastic_client.index(
-            index=mirror.config.BEATMAPS_INDEX,
+        await services.elastic_client.index(
+            index=config.BEATMAPS_INDEX,
             id=str(beatmap.beatmap_id),
             document=beatmap.__dict__,
         )

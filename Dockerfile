@@ -15,7 +15,7 @@ RUN chmod u+x /scripts/*
 
 RUN ln -s /scripts/wait-for-it.sh /usr/local/bin/wait-for-it
 
-COPY mirror/ /srv/root
+COPY mount/ /srv/root
 
 EXPOSE 80
 

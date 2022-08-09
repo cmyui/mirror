@@ -5,10 +5,10 @@ import logging
 
 import uvicorn
 
-import mirror.config
+from app import config
 
 logging.basicConfig(
-    level=mirror.config.LOG_LEVEL,
+    level=app.config.LOG_LEVEL,
     format="%(asctime)s %(message)s",
 )
 
@@ -16,9 +16,9 @@ logging.basicConfig(
 def main() -> int:
     # run the server
     uvicorn.run(
-        "mirror.api.rest.init_api:asgi_app",
-        host=mirror.config.APP_HOST,
-        port=mirror.config.APP_PORT,
+        "api.rest.init_api:asgi_app",
+        host=config.APP_HOST,
+        port=config.APP_PORT,
         reload=True,
     )
 

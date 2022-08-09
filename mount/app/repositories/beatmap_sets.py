@@ -4,11 +4,10 @@ from typing import MutableMapping
 from typing import Optional
 
 import orjson
+from app import config,services
+from app.models.beatmaps import Beatmap
+from app.models.beatmap_sets import BeatmapSet
 
-import mirror.config
-import mirror.services
-from mirror.models.beatmap_sets import BeatmapSet
-from mirror.models.beatmaps import Beatmap
 
 id_cache: MutableMapping[int, BeatmapSet] = {}
 
@@ -25,12 +24,12 @@ async def from_id(id: int) -> Optional[BeatmapSet]:
         return beatmap_set
 
     # fetch the beatmap set from elasticsearch if possible
-    if await mirror.services.elastic_client.exists(
-        index=mirror.config.BEATMAP_SETS_INDEX,
+    if await services.elastic_client.exists(
+        index=config.BEATMAP_SETS_INDEX,
         id=str(id),
     ):
-        response = await mirror.services.elastic_client.get(
-            index=mirror.config.BEATMAPS_INDEX,
+        response = await services.elastic_client.get(
+            index=config.BEATMAPS_INDEX,
             id=str(id),
         )
 
@@ -40,10 +39,10 @@ async def from_id(id: int) -> Optional[BeatmapSet]:
         # beatmap set not found in elasticsearch
         # send a response to the osu! api (v1)
         # to fetch it's up-to-date metadata
-        response = await mirror.services.http_client.get(
+        response = await services.http_client.get(
             "https://osu.ppy.sh/api/get_beatmaps",
             params={
-                "k": mirror.config.OSU_API_KEY,
+                "k": config.OSU_API_KEY,
                 "s": id,
             },
         )
@@ -64,8 +63,8 @@ async def from_id(id: int) -> Optional[BeatmapSet]:
         beatmap_set = BeatmapSet(**response_data[0])
 
         # save the beatmap set into our elasticsearch index
-        # await mirror.services.elastic_client.create(
-        #     index=mirror.config.BEATMAP_SETS_INDEX,
+        # await services.elastic_client.create(
+        #     index=config.BEATMAP_SETS_INDEX,
         #     id=str(id),
         #     document=beatmap_set.dict(),  # TODO: __dict__?
         # )

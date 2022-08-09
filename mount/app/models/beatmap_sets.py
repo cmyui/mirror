@@ -6,13 +6,13 @@ from typing import TypedDict
 
 from pydantic import BaseModel
 
-from mirror.enums.ranked_statuses import (
+from app.enums.ranked_statuses import (
     osu_api_to_cheesegull_status,
 )
-from mirror.models.beatmaps import Beatmap  # TODO: fuck
+from app.models.beatmaps import Beatmap  # TODO: fuck
 
 if TYPE_CHECKING:
-    from mirror.models.beatmaps import BeatmapCheesegull
+    from app.models.beatmaps import BeatmapCheesegull
 
 
 class BeatmapSetCheesegull(TypedDict):

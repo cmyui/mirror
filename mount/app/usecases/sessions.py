@@ -6,10 +6,8 @@ from typing import Optional
 from typing import TypedDict
 from typing import Union
 
-import mirror.config
-import mirror.services
-import mirror.sessions
-from mirror.models.sessions import OsuWebSession
+from app import config, services, sessions
+from app.models.sessions import OsuWebSession
 
 LOGIN_BODY_BASE = {
     # assigned at login time,
@@ -59,7 +57,7 @@ class OsuAccount(TypedDict):
 
 async def osu_login(osu_account: OsuAccount) -> Optional[OsuWebSession]:
     # TODO: check if this sends python user agent?
-    response = await mirror.services.http_client.post(
+    response = await services.http_client.post(
         "https://old.ppy.sh/forum/ucp.php",
         params={"mode": "login"},
         headers=LOGIN_HEADERS,

@@ -16,6 +16,6 @@ case $APP_COMPONENT in
         --host 0.0.0.0 \
         --port 80 \
         --no-access-log \
-        mirror.init_api:asgi_app
+        app.http_boot:service_api
     ;;
 esac

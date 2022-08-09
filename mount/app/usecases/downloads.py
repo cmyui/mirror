@@ -3,16 +3,15 @@ from __future__ import annotations
 import logging
 import random
 
-import mirror.services
-import mirror.sessions
+from app import services, sessions
 
 
 async def download_beatmap_set(beatmap_set_id: int, osz2_path: str) -> bool:
     """Download a beatmap set .osz file from osu!'s servers."""
     # TODO: ratelimit on a per account basis
-    session = random.choice(mirror.sessions.sessions)
+    session = random.choice(sessions.sessions)
 
-    response = await mirror.services.http_client.get(
+    response = await services.http_client.get(
         f"https://osu.ppy.sh/d/{beatmap_set_id}",
         cookies={
             "osu_session": session.osu_session_token,
