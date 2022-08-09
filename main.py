@@ -17,8 +17,8 @@ def main() -> int:
     # run the server
     uvicorn.run(
         "mirror.api.rest.init_api:asgi_app",
-        host="127.0.0.1",
-        port=4378,
+        host=mirror.config.APP_HOST,
+        port=mirror.config.APP_PORT,
         reload=True,
     )
 

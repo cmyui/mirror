@@ -9,6 +9,8 @@ config = Config(".env")
 # asgi + app
 APP_ENV = config.get("APP_ENV")
 APP_COMPONENT = config.get("APP_COMPONENT")
+APP_HOST = config.get("APP_HOST")
+APP_PORT = config.get("APP_PORT", cast=int)
 
 # https://docs.python.org/3/library/logging.html#levels
 LOG_LEVEL = config.get("LOG_LEVEL", cast=int)
