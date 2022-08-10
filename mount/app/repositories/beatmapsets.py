@@ -87,7 +87,7 @@ async def search(
     if query is not None:
         query_conditions.append(
             {
-                "query_string": {
+                "simple_query_string": {
                     "query": query,
                     "fields": [
                         "data.artist",
