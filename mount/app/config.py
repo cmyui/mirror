@@ -38,7 +38,7 @@ WRITE__DB_DSN = "postgresql://{}:{}@{}:{}/{}?sslmode=prefer".format(
 ELASTIC_HOST = config.get("ELASTIC_HOST")
 ELASTIC_PORT = config.get("ELASTIC_PORT")
 BEATMAPS_INDEX = config.get("BEATMAPS_INDEX")
-BEATMAP_SETS_INDEX = config.get("BEATMAP_SETS_INDEX")
+BEATMAPSETS_INDEX = config.get("BEATMAPSETS_INDEX")
 
 # rabbitmq
 AMQP_HOST = config.get("AMQP_HOST")
@@ -47,8 +47,9 @@ AMQP_USER = config.get("AMQP_USER")
 AMQP_PASS = config.get("AMQP_PASS")
 
 # osu! api
-OSU_API_KEY = config.get("OSU_API_KEY")
-OSU_ACCOUNTS = config.get("OSU_ACCOUNTS", cast=literal_eval)  # downloads
+OSU_API_CLIENT_ID = config.get("OSU_API_CLIENT_ID", cast=int)
+OSU_API_CLIENT_SECRET = config.get("OSU_API_CLIENT_SECRET")
+OSU_API_REDIRECT_URL = config.get("OSU_API_REDIRECT_URL")
 
 # settings
 MAX_DISK_USAGE_GB = config.get("MAX_DISK_USAGE_GB", cast=int)

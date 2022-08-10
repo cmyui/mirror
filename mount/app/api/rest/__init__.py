@@ -2,16 +2,16 @@ from __future__ import annotations
 
 import logging
 
-import httpx
+from app import config
+from app import services
+from app.api.rest import v1
 from elasticsearch import AsyncElasticsearch
 from fastapi.applications import FastAPI
 from starlette_exporter import handle_metrics
 from starlette_exporter import PrometheusMiddleware
+from osu import AsynchronousClient
+
 from . import middlewares
-
-from app import config, services
-
-from app.api.rest import v1
 
 
 def init_middlewares(app: FastAPI) -> None:
@@ -35,7 +35,7 @@ def init_events(app: FastAPI) -> None:
         # https://www.elastic.co/guide/en/elasticsearch/reference/7.17/security-minimal-setup.html
 
         services.elastic_client = AsyncElasticsearch(
-            f"http://{config.ELASTIC_HOST}:{config.ELASTIC_PORT}"
+            f"http://{config.ELASTIC_HOST}:{config.ELASTIC_PORT}",
         )
 
         # create elasticsearch index if it doesn't already exist
@@ -47,13 +47,15 @@ def init_events(app: FastAPI) -> None:
                 # body=INDEX_DEFINITION,
             )
 
-        services.http_client = httpx.AsyncClient()
-
+        services.osu_api_client = AsynchronousClient.from_client_credentials(
+            client_id=config.OSU_API_CLIENT_ID,
+            client_secret=config.OSU_API_CLIENT_SECRET,
+            redirect_url=config.OSU_API_REDIRECT_URL,
+        )
 
     @app.on_event("shutdown")
     async def on_shutdown() -> None:
         await services.elastic_client.close()
-        await services.http_client.aclose()
 
         # TODO: logout accounts..? is that weird?
 
@@ -81,5 +83,3 @@ def init_api() -> FastAPI:
     init_endpoints(app)
 
     return app
-
-

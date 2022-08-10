@@ -2,7 +2,8 @@ aiohttp[speedups]
 databases[asyncmy]
 elasticsearch
 fastapi
-httpx[brotli]
 orjson
+osu.py
+python-dateutil
 starlette_exporter
 uvicorn[standard]

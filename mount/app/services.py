@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from elasticsearch import AsyncElasticsearch
-from httpx import AsyncClient
+from osu import AsynchronousClient
 
 elastic_client: AsyncElasticsearch
-http_client: AsyncClient
+osu_api_client: AsynchronousClient
