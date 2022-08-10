@@ -15,6 +15,7 @@ case $APP_COMPONENT in
         exec uvicorn \
             --host 0.0.0.0 \
             --port 80 \
+            --reload \
             --no-access-log \
             app.http_boot:service_api
         ;;
