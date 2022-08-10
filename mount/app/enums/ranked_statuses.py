@@ -12,14 +12,14 @@ class OsuAPIRankedStatus:
 
 
 class OsuDirectStatus:
-    Ranked = 0
-    Pending = 2
-    Qualified = 3
-    ranked = 4
-    Graveyard = 5
+    RANKED = 0
+    PENDING = 2
+    QUALIFIED = 3
+    RANKED = 4
+    GRAVEYARD = 5
     # 6 is mia
-    PlayedBefore = 7
-    Loved = 8
+    PLAYED_BEFORE = 7
+    LOVED = 8
 
 
 class MirrorRankedStatus(OsuAPIRankedStatus):
@@ -28,23 +28,23 @@ class MirrorRankedStatus(OsuAPIRankedStatus):
 
 def osu_api_to_osu_direct_status(osu_api_status: int) -> int:
     return {
-        OsuAPIRankedStatus.GRAVEYARD: OsuDirectStatus.Graveyard,
-        OsuAPIRankedStatus.WORK_IN_PROGRESS: OsuDirectStatus.Pending,
-        OsuAPIRankedStatus.PENDING: OsuDirectStatus.Pending,
-        OsuAPIRankedStatus.RANKED: OsuDirectStatus.Ranked,
-        OsuAPIRankedStatus.APPROVED: OsuDirectStatus.Ranked,
-        OsuAPIRankedStatus.QUALIFIED: OsuDirectStatus.Qualified,
-        OsuAPIRankedStatus.LOVED: OsuDirectStatus.Loved,
+        OsuAPIRankedStatus.GRAVEYARD: OsuDirectStatus.GRAVEYARD,
+        OsuAPIRankedStatus.WORK_IN_PROGRESS: OsuDirectStatus.PENDING,
+        OsuAPIRankedStatus.PENDING: OsuDirectStatus.PENDING,
+        OsuAPIRankedStatus.RANKED: OsuDirectStatus.RANKED,
+        OsuAPIRankedStatus.APPROVED: OsuDirectStatus.RANKED,
+        OsuAPIRankedStatus.QUALIFIED: OsuDirectStatus.QUALIFIED,
+        OsuAPIRankedStatus.LOVED: OsuDirectStatus.LOVED,
     }[osu_api_status]
 
 
 def osu_direct_to_osu_api_status(osu_api_status: int) -> int:
     return {
-        OsuDirectStatus.Graveyard: OsuAPIRankedStatus.GRAVEYARD,
-        OsuDirectStatus.Pending: OsuAPIRankedStatus.WORK_IN_PROGRESS,
-        OsuDirectStatus.Pending: OsuAPIRankedStatus.PENDING,
-        OsuDirectStatus.Ranked: OsuAPIRankedStatus.RANKED,
-        OsuDirectStatus.Ranked: OsuAPIRankedStatus.APPROVED,
-        OsuDirectStatus.Qualified: OsuAPIRankedStatus.QUALIFIED,
-        OsuDirectStatus.Loved: OsuAPIRankedStatus.LOVED,
+        OsuDirectStatus.GRAVEYARD: OsuAPIRankedStatus.GRAVEYARD,
+        OsuDirectStatus.PENDING: OsuAPIRankedStatus.WORK_IN_PROGRESS,
+        OsuDirectStatus.PENDING: OsuAPIRankedStatus.PENDING,
+        OsuDirectStatus.RANKED: OsuAPIRankedStatus.RANKED,
+        OsuDirectStatus.RANKED: OsuAPIRankedStatus.APPROVED,
+        OsuDirectStatus.QUALIFIED: OsuAPIRankedStatus.QUALIFIED,
+        OsuDirectStatus.LOVED: OsuAPIRankedStatus.LOVED,
     }[osu_api_status]
