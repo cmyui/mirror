@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import datetime
 from typing import Any
-from typing import Mapping
-from typing import MutableMapping
 
 from aiohttp.client_exceptions import ClientResponseError
 from app import config
@@ -11,10 +9,10 @@ from app import services
 from osu.path import Path as OsuAPIPath
 
 # TODO: typeddict model for mapping?
-id_cache: MutableMapping[int, Mapping[str, Any]] = {}
+id_cache: dict[int, dict[str, Any]] = {}
 
 
-async def get_from_id(id: int) -> Mapping[str, Any] | None:
+async def get_from_id(id: int) -> dict[str, Any] | None:
     """\
     Fetch a beatmap's metadata from it's id.
 
@@ -49,7 +47,7 @@ async def get_from_id(id: int) -> Mapping[str, Any] | None:
             return None
         else:
             # save the beatmap into our elasticsearch index
-            await services.elastic_client.index(
+            await services.elastic_client.create(
                 index=config.BEATMAPS_INDEX,
                 id=str(id),
                 document={
@@ -60,11 +58,11 @@ async def get_from_id(id: int) -> Mapping[str, Any] | None:
             )
 
     # cache the beatmap in ram
-    id_cache[id] = beatmap_data
+    # id_cache[id] = beatmap_data
 
     return beatmap_data
 
 
-async def get_from_checksum(checksum: str) -> Mapping[str, Any] | None:
+async def get_from_checksum(checksum: str) -> dict[str, Any] | None:
     """Get a beatmap from it's md5 checksum."""
     ...

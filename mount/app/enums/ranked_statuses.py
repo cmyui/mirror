@@ -11,19 +11,32 @@ class OsuAPIRankedStatus:
     LOVED = 4
 
 
+class MirrorRankedStatus(OsuAPIRankedStatus):
+    ALL = -3
+
+
+def ranked_status_int_to_str(status: int) -> str:
+    return {
+        # MirrorRankedStatus.ALL: "all",
+        MirrorRankedStatus.GRAVEYARD: "graveyard",
+        MirrorRankedStatus.WORK_IN_PROGRESS: "pending",
+        MirrorRankedStatus.PENDING: "pending",
+        MirrorRankedStatus.RANKED: "ranked",
+        MirrorRankedStatus.APPROVED: "approved",
+        MirrorRankedStatus.QUALIFIED: "qualified",
+        MirrorRankedStatus.LOVED: "loved",
+    }[status]
+
+
 class OsuDirectStatus:
     RANKED = 0
     PENDING = 2
     QUALIFIED = 3
-    RANKED = 4
+    RANKED = 4  # TODO wtf
     GRAVEYARD = 5
     # 6 is mia
     PLAYED_BEFORE = 7
     LOVED = 8
-
-
-class MirrorRankedStatus(OsuAPIRankedStatus):
-    ALL = -3
 
 
 def osu_api_to_osu_direct_status(osu_api_status: int) -> int:
