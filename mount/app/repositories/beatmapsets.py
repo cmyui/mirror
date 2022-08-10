@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, MutableMapping
+from typing import Any
+from typing import Mapping
+from typing import MutableMapping
 from typing import Optional
 
 import aiohttp.client_exceptions

@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi.responses import ORJSONResponse
 from fastapi import status
+from fastapi.responses import ORJSONResponse
 
 
 def success(data: Any) -> ORJSONResponse:

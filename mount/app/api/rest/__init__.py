@@ -7,9 +7,9 @@ from app import services
 from app.api.rest import v1
 from elasticsearch import AsyncElasticsearch
 from fastapi.applications import FastAPI
+from osu import AsynchronousClient
 from starlette_exporter import handle_metrics
 from starlette_exporter import PrometheusMiddleware
-from osu import AsynchronousClient
 
 from . import middlewares
 

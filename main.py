@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 
 import uvicorn
+
 from mount.app import config
 
 logging.basicConfig(

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
 from app.api import responses
 from app.usecases import beatmapsets
+from fastapi import APIRouter
 
 router = APIRouter()
 

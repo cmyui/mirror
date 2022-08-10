@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter
 
-from . import beatmapsets
 from . import beatmaps
+from . import beatmapsets
 
 router = APIRouter()
 
