@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 from typing import Any
 from typing import Mapping
 from typing import MutableMapping
@@ -35,7 +36,7 @@ async def get_from_id(id: int) -> Mapping[str, Any] | None:
         )
 
         # we found the map from elasticsearch
-        beatmap_data = response.body
+        beatmap_data = response.body["data"]
     else:
         try:
             beatmap_data = await services.osu_api_client.http.make_request(
@@ -51,7 +52,11 @@ async def get_from_id(id: int) -> Mapping[str, Any] | None:
             await services.elastic_client.index(
                 index=config.BEATMAPS_INDEX,
                 id=str(id),
-                document=beatmap_data,
+                document={
+                    "data": beatmap_data,
+                    "created_at": datetime.datetime.now().isoformat(),
+                    "updated_at": datetime.datetime.now().isoformat(),
+                },
             )
 
     # cache the beatmap in ram
