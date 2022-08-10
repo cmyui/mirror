@@ -12,10 +12,10 @@ case $APP_COMPONENT in
         /scripts/run-tests.sh
         ;;
     "api" | *)
-    exec uvicorn \
-        --host 0.0.0.0 \
-        --port 80 \
-        --no-access-log \
-        app.http_boot:service_api
-    ;;
+        exec uvicorn \
+            --host 0.0.0.0 \
+            --port 80 \
+            --no-access-log \
+            app.http_boot:service_api
+        ;;
 esac
