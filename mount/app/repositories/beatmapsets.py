@@ -7,7 +7,7 @@ from aiohttp.client_exceptions import ClientResponseError
 from app import config
 from app import services
 from app.enums.gamemodes import GameMode
-from app.enums.ranked_statuses import MirrorRankedStatus
+from app.enums.ranked_statuses import OsuAPIRankedStatus
 from osu.path import Path as OsuAPIPath
 
 # TODO: typeddict model for mapping?
@@ -104,13 +104,13 @@ async def search(
     if mode != GameMode.ALL:
         query_conditions.append({"term": {"data.beatmaps.mode_int": mode}})
 
-    if status != MirrorRankedStatus.ALL:
+    if status != OsuAPIRankedStatus.ALL:
         query_conditions.append({"term": {"data.beatmaps.ranked": status}})
 
     elastic_response = await services.elastic_client.search(
         index=config.BEATMAPSETS_INDEX,
         query={"bool": {"must": query_conditions}},
-        size=max(amount, 100),  # TODO: should i max() here?
+        size=amount,
         from_=offset,
     )
 

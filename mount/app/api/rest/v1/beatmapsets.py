@@ -5,9 +5,10 @@ from typing import Mapping
 
 from app.api import responses
 from app.enums.gamemodes import GameMode
-from app.enums.ranked_statuses import OsuDirectStatus
+from app.enums.ranked_statuses import OsuAPIRankedStatus
 from app.usecases import beatmapsets
 from fastapi import APIRouter
+from fastapi.param_functions import Query
 from fastapi.responses import Response
 
 router = APIRouter()
@@ -45,10 +46,10 @@ def osu_direct_format(beatmap_set_data: Mapping[str, Any]) -> bytes:
 async def get_beatmapset_search(
     # TODO: are any of these default weird?
     query: str | None = None,
-    amount: int = 100,
-    offset: int = 0,
-    mode: int = OsuDirectStatus.RANKED,
-    status: int = GameMode.OSU,
+    amount: int = Query(100, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    status: OsuAPIRankedStatus = OsuAPIRankedStatus.RANKED,
+    mode: GameMode = GameMode.OSU,
     osu_direct: bool = False,
 ):
     search_results = await beatmapsets.search(query, amount, offset, mode, status)
