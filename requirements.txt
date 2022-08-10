@@ -1,9 +1,7 @@
 aiohttp[speedups]
-databases[asyncmy]
 elasticsearch
 fastapi
 orjson
 osu.py==0.3.4 # pinning this as it installs an old version due to their pinned reqs :(
-python-dateutil
 starlette_exporter
 uvicorn[standard]
