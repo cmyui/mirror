@@ -4,10 +4,12 @@ from typing import Any
 from typing import Mapping
 from typing import MutableMapping
 
-import aiohttp.client_exceptions
+from aiohttp.client_exceptions import ClientResponseError
 from app import config
 from app import services
+from osu.path import Path as OsuAPIPath
 
+# TODO: typeddict model for mapping?
 id_cache: MutableMapping[int, Mapping[str, Any]] = {}
 
 
@@ -19,8 +21,8 @@ async def get_from_id(id: int) -> Mapping[str, Any] | None:
     """
 
     # fetch the beatmap from ram if possible
-    if beatmap := id_cache.get(id):
-        return beatmap
+    if beatmap_data := id_cache.get(id):
+        return beatmap_data
 
     # fetch the beatmap from elasticsearch if possible
     if await services.elastic_client.exists(
@@ -36,16 +38,15 @@ async def get_from_id(id: int) -> Mapping[str, Any] | None:
         beatmap_data = response.body
     else:
         try:
-            beatmap = await services.osu_api_client.get_beatmap(beatmap=id)
-        except aiohttp.client_exceptions.ClientResponseError as exc:
+            beatmap_data = await services.osu_api_client.http.make_request(
+                method="get",
+                path=OsuAPIPath.beatmap(id),
+            )
+        except ClientResponseError as exc:
             if exc.code != 404:
                 raise
             return None
         else:
-            beatmap_data = {
-                field: getattr(beatmap, field) for field in beatmap.__slots__
-            }
-
             # save the beatmap into our elasticsearch index
             await services.elastic_client.index(
                 index=config.BEATMAPS_INDEX,
