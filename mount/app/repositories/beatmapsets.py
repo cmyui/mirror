@@ -35,7 +35,7 @@ async def get_from_id(id: int) -> dict[str, Any] | None:
             id=str(id),
         )
 
-        beatmapset_data = response.body["_source"]["data"]
+        beatmapset_data: dict[str, Any] = response.body["_source"]["data"]
     else:
         try:
             beatmapset_data = await services.osu_api_client.http.make_request(
