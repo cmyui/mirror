@@ -31,7 +31,7 @@ async def crawl_beatmaps() -> None:
     highest_beatmap_id = (
         int(elastic_highest_id) if elastic_highest_id is not None else 0
     )
-    backoff_time = 0
+    backoff_time = 1
 
     while True:
         beatmap_ids = [highest_beatmap_id + 1 + i for i in range(50)]
@@ -43,7 +43,7 @@ async def crawl_beatmaps() -> None:
         print(f"Ran & found {beatmaps_found} beatmaps")
 
         if beatmaps_found:
-            backoff_time = 0
+            backoff_time = 1
 
             operations = []
             for beatmap in beatmaps:
@@ -65,10 +65,7 @@ async def crawl_beatmaps() -> None:
 
             await elastic_client.bulk(operations=operations)
         else:
-            if not backoff_time:
-                backoff_time = 1
-            else:
-                backoff_time **= 2
+            backoff_time **= 2
 
             await asyncio.sleep(min(backoff_time, MAXIMUM_BACKOFF))
 
@@ -82,7 +79,7 @@ async def crawl_beatmapsets() -> None:
     highest_beatmapset_id = (
         int(elastic_highest_id) if elastic_highest_id is not None else 0
     )
-    backoff_time = 0
+    backoff_time = 1
 
     while True:
         highest_beatmapset_id += 1
@@ -96,7 +93,7 @@ async def crawl_beatmapsets() -> None:
                 raise exc
 
         if beatmapset:
-            backoff_time = 0
+            backoff_time = 1
 
             beatmapset_data = slotted_obj_to_dict(beatmapset)
             del beatmapset_data["beatmaps"]  # don't include beatmaps in the set index
@@ -113,10 +110,7 @@ async def crawl_beatmapsets() -> None:
             )
             print("Indexed beatmapset", beatmapset.id)
         else:
-            if not backoff_time:
-                backoff_time = 1
-            else:
-                backoff_time **= 2
+            backoff_time **= 2
 
             await asyncio.sleep(min(backoff_time, MAXIMUM_BACKOFF))
 
