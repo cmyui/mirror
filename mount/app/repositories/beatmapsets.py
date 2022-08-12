@@ -47,7 +47,24 @@ async def get_from_id(id: int) -> dict[str, Any] | None:
                 raise
             return None
         else:
-            # save the beatmap set into our elasticsearch index
+            # extract beatmap info from the set
+            beatmaps_data = beatmapset_data.pop("beatmaps")
+
+            # save the beatmaps into our elastic index
+            # TODO: use bulk query
+            for beatmap_data in beatmaps_data:
+                await services.elastic_client.index(
+                    index=config.BEATMAPS_INDEX,
+                    id=str(beatmap_data["id"]),
+                    document={
+                        "data": beatmap_data,
+                        # TODO: should we really be setting created_at here?
+                        "created_at": datetime.datetime.now().isoformat(),
+                        "updated_at": datetime.datetime.now().isoformat(),
+                    },
+                )
+
+            # save the beatmap set into our elastic index
             await services.elastic_client.create(
                 index=config.BEATMAPSETS_INDEX,
                 id=str(id),
