@@ -6,6 +6,7 @@ from app.enums.ranked_statuses import OsuAPIRankedStatus
 from app.usecases import beatmapsets
 from fastapi import APIRouter
 from fastapi.param_functions import Query
+from fastapi.responses import Response
 
 router = APIRouter()
 
@@ -25,7 +26,7 @@ async def get_beatmapset_search(
 ):
     search_results = await beatmapsets.search(query, amount, offset, mode, status)
     if osu_direct:
-        return responses.osu_direct(search_results)
+        return responses.osu_direct(search_results)  # type: ignore
 
     return responses.success(search_results)
 
@@ -41,8 +42,11 @@ async def get_beatmapset(beatmapset_id: int):
 
 @router.get("/beatmapsets/{beatmapset_id}/osz2")
 async def get_beatmapset_osz2(beatmapset_id: int):
-    beatmapset = await beatmapsets.get_osz2_from_id(beatmapset_id)
-    if beatmapset is None:
+    beatmapset_osz = await beatmapsets.get_osz2_from_id(beatmapset_id)
+    if beatmapset_osz is None:
         return responses.error(404, "Beatmapset not found")
 
-    return responses.success(beatmapset)
+    return Response(
+        content=beatmapset_osz,
+        headers={"Content-Disposition": f'attachment; filename="{beatmapset_id}.osz"'},
+    )

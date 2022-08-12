@@ -3,10 +3,9 @@ from __future__ import annotations
 import datetime
 from typing import Any
 
-from aiohttp.client_exceptions import ClientResponseError
 from app import config
 from app import services
-from osu.path import Path as OsuAPIPath
+
 
 # TODO: typeddict model for mapping?
 id_cache: dict[int, dict[str, Any]] = {}
@@ -37,14 +36,12 @@ async def get_from_id(id: int) -> dict[str, Any] | None:
         beatmap_data = response.body["data"]
     else:
         try:
-            beatmap_data = await services.osu_api_client.http.make_request(
-                method="get",
-                path=OsuAPIPath.beatmap(id),
-            )
-        except ClientResponseError as exc:
-            if exc.code != 404:
+            beatmap_data = await services.osu_api_client.get_beatmap(id)
+        except services.OsuAPIRequestError as exc:
+            if exc.status_code == 404:
+                return None
+            else:
                 raise
-            return None
         else:
             # save the beatmap into our elasticsearch index
             await services.elastic_client.create(

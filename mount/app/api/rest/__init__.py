@@ -5,9 +5,9 @@ import logging
 from app import config
 from app import services
 from app.api.rest import v1
+from app.services import OsuAPIClient
 from elasticsearch import AsyncElasticsearch
 from fastapi.applications import FastAPI
-from osu import AsynchronousClient
 from starlette_exporter import handle_metrics
 from starlette_exporter import PrometheusMiddleware
 
@@ -43,10 +43,14 @@ def init_events(app: FastAPI) -> None:
             if not await services.elastic_client.indices.exists(index=index):
                 await services.elastic_client.indices.create(index=index)
 
-        services.osu_api_client = AsynchronousClient.from_client_credentials(
+        services.osu_api_client = OsuAPIClient(
             client_id=config.OSU_API_CLIENT_ID,
             client_secret=config.OSU_API_CLIENT_SECRET,
-            redirect_url=config.OSU_API_REDIRECT_URL,
+            scope=config.OSU_API_SCOPE,
+            username=config.OSU_API_USERNAME,
+            password=config.OSU_API_PASSWORD,
+            request_interval=config.OSU_API_REQUEST_INTERVAL,
+            max_requests_per_minute=config.OSU_API_MAX_REQUESTS_PER_MINUTE,
         )
 
     @app.on_event("shutdown")
