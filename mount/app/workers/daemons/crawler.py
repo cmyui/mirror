@@ -88,7 +88,7 @@ async def crawl_beatmapsets() -> None:
             beatmapset = await osu_api_client.get_beatmapset(highest_beatmapset_id)
         except aiohttp.client_exceptions.ClientResponseError as exc:
             if exc.status == 404:
-                continue
+                beatmapset = None
             else:
                 raise exc
 
@@ -102,8 +102,10 @@ async def crawl_beatmapsets() -> None:
                 index=config.BEATMAPSETS_INDEX,
                 id=str(beatmapset.id),
                 document={
-                    "data": {k: getattr(beatmapset, k) for k in beatmapset.__slots__}
-                    | {"id": beatmapset.id},
+                    "data": (
+                        {k: getattr(beatmapset, k) for k in beatmapset.__slots__}
+                        | {"id": beatmapset.id}
+                    ),
                     "created_at": datetime.datetime.now().isoformat(),
                     "updated_at": datetime.datetime.now().isoformat(),
                 },
