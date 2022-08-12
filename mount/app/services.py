@@ -16,8 +16,9 @@ osu_api_client: OsuAPIClient
 
 
 class OsuAPIRequestError(Exception):
-    def __init__(self, status_code: int, *args: object) -> None:
+    def __init__(self, message: str, status_code: int, *args: object) -> None:
         super().__init__(*args)
+        self.message = message
         self.status_code = status_code
 
 
@@ -140,13 +141,23 @@ class OsuAPIClient:
         self._requests_this_minute += 1
 
         if response.status_code != 200:
-            raise OsuAPIRequestError(response.status_code)
-        print(response.charset_encoding)
-        if response.charset_encoding == "application/json":
+            raise OsuAPIRequestError(
+                "Request returned non-200 status code",
+                response.status_code,
+            )
+
+        content_type = response.headers.get("content-type", "")
+        if content_type is None:
+            raise OsuAPIRequestError(
+                "No content-type header found in response.",
+                response.status_code,
+            )
+
+        if content_type == "application/json":
             return response.json()
-        elif response.charset_encoding == "application/octet-stream":
+        elif content_type == "application/octet-stream":
             return await response.aread()
-        elif response.charset_encoding == "text/plain":
+        elif content_type == "text/plain":
             return (await response.aread()).decode()
         else:
             return await response.aread()
