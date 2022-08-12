@@ -38,14 +38,10 @@ def init_events(app: FastAPI) -> None:
             f"http://{config.ELASTIC_HOST}:{config.ELASTIC_PORT}",
         )
 
-        # create elasticsearch index if it doesn't already exist
-        if not await services.elastic_client.indices.exists(
-            index=config.BEATMAPS_INDEX,
-        ):
-            await services.elastic_client.indices.create(
-                index=config.BEATMAPS_INDEX,
-                # body=INDEX_DEFINITION,
-            )
+        # create elasticsearch indices if they don't already exist
+        for index in (config.BEATMAPS_INDEX, config.BEATMAPSETS_INDEX):
+            if not await services.elastic_client.indices.exists(index=index):
+                await services.elastic_client.indices.create(index=index)
 
         services.osu_api_client = AsynchronousClient.from_client_credentials(
             client_id=config.OSU_API_CLIENT_ID,
