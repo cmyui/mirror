@@ -9,6 +9,11 @@ case $APP_COMPONENT in
     "tests")
         /scripts/run-tests.sh
         ;;
+
+    "crawler-daemon")
+        python -m app.workers.daemons.crawler
+        ;;
+
     "api" | *)
         exec uvicorn \
             --host 0.0.0.0 \
