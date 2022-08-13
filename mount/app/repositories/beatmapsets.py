@@ -2,13 +2,12 @@ from __future__ import annotations
 
 import datetime
 from typing import Any
+from typing import cast
 
-from aiohttp.client_exceptions import ClientResponseError
 from app import config
 from app import services
 from app.enums.gamemodes import GameMode
 from app.enums.ranked_statuses import OsuAPIRankedStatus
-from osu.path import Path as OsuAPIPath
 
 # TODO: typeddict model for mapping?
 id_cache: dict[int, dict[str, Any]] = {}
@@ -35,24 +34,22 @@ async def get_from_id(id: int) -> dict[str, Any] | None:
             id=str(id),
         )
 
-        beatmapset_data: dict[str, Any] = response.body["_source"]["data"]
+        beatmapset = cast(dict[str, Any], response.body["_source"]["data"])
     else:
         try:
-            beatmapset_data = await services.osu_api_client.http.make_request(
-                method="get",
-                path=OsuAPIPath.get_beatmapset(id),
-            )
-        except ClientResponseError as exc:
-            if exc.code != 404:
+            beatmapset = await services.osu_api_client.get_beatmapset(id)
+        except services.OsuAPIRequestError as exc:
+            if exc.status_code == 404:
+                return None
+            else:
                 raise
-            return None
         else:
             # extract beatmap info from the set
-            beatmaps_data = beatmapset_data.pop("beatmaps")
+            # beatmaps_data = beatmapset_data.pop("beatmaps")
 
             # save the beatmaps into our elastic index
             # TODO: use bulk query
-            for beatmap_data in beatmaps_data:
+            for beatmap_data in beatmapset["beatmaps"]:
                 await services.elastic_client.index(
                     index=config.BEATMAPS_INDEX,
                     id=str(beatmap_data["id"]),
@@ -69,7 +66,7 @@ async def get_from_id(id: int) -> dict[str, Any] | None:
                 index=config.BEATMAPSETS_INDEX,
                 id=str(id),
                 document={
-                    "data": beatmapset_data,
+                    "data": beatmapset,
                     "created_at": datetime.datetime.now().isoformat(),
                     "updated_at": datetime.datetime.now().isoformat(),
                 },
@@ -78,7 +75,7 @@ async def get_from_id(id: int) -> dict[str, Any] | None:
     # cache the beatmap set in ram
     # id_cache[id] = beatmapset_data
 
-    return beatmapset_data
+    return beatmapset
 
 
 async def get_from_checksum(checksum: str) -> dict[str, Any] | None:
@@ -86,9 +83,17 @@ async def get_from_checksum(checksum: str) -> dict[str, Any] | None:
     raise NotImplementedError
 
 
-async def get_osz2_from_id(id: int) -> dict[str, Any] | None:
+async def get_osz2_from_id(id: int) -> bytes | None:
     """Fetch a beatmapset's osz2 file from it's id."""
-    raise NotImplementedError
+    try:
+        beatmapset_osz2_data = await services.osu_api_client.get_beatmap_osz2(id)
+    except services.OsuAPIRequestError as exc:
+        if exc.status_code == 404:
+            return None
+        else:
+            raise
+
+    return beatmapset_osz2_data
 
 
 async def search(

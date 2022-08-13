@@ -1,7 +1,7 @@
 aiohttp[speedups]
 elasticsearch
 fastapi
+httpx
 orjson
-osu.py==0.3.4 # pinning this as it installs an old version due to their pinned reqs :(
 starlette_exporter
 uvicorn[standard]

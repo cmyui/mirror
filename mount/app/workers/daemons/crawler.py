@@ -3,23 +3,13 @@ from __future__ import annotations
 
 import asyncio
 import datetime
-from typing import Any
 
-import aiohttp.client_exceptions
-import osu
 from app import config
+from app.services import OsuAPIClient
+from app.services import OsuAPIRequestError
 from elasticsearch import AsyncElasticsearch
 
 MAXIMUM_BACKOFF = 32  # seconds
-
-# TODO: where should this live?
-def slotted_obj_to_dict(obj: object) -> dict[str, Any]:
-    result = {}
-    for cls in obj.__class__.__mro__:
-        slots = getattr(cls, "__slots__", None)
-        if slots is not None:
-            result |= {k: getattr(obj, k) for k in slots if hasattr(obj, k)}
-    return result
 
 
 async def crawl_beatmaps() -> None:
@@ -51,13 +41,13 @@ async def crawl_beatmaps() -> None:
                     {
                         "create": {
                             "_index": config.BEATMAPS_INDEX,
-                            "_id": str(beatmap.id),
+                            "_id": str(beatmap["id"]),
                         },
                     },
                 )
                 operations.append(
                     {
-                        "data": {k: getattr(beatmap, k) for k in beatmap.__slots__},
+                        "data": beatmaps,
                         "created_at": datetime.datetime.now().isoformat(),
                         "updated_at": datetime.datetime.now().isoformat(),
                     },
@@ -65,9 +55,11 @@ async def crawl_beatmaps() -> None:
 
             await elastic_client.bulk(operations=operations)
         else:
-            backoff_time **= 2
+            if backoff_time < MAXIMUM_BACKOFF:
+                backoff_time **= 2
 
-            await asyncio.sleep(min(backoff_time, MAXIMUM_BACKOFF))
+            print(f"Backing off on beatmap crawling - sleeping for {backoff_time}")
+            await asyncio.sleep(backoff_time)
 
 
 async def crawl_beatmapsets() -> None:
@@ -76,55 +68,51 @@ async def crawl_beatmapsets() -> None:
         index=config.BEATMAPSETS_INDEX,
     )
     elastic_highest_id = elastic_response["aggregations"]["max_id"]["value"]
-    highest_beatmapset_id = (
-        int(elastic_highest_id) if elastic_highest_id is not None else 0
-    )
+    beatmapset_id = int(elastic_highest_id) if elastic_highest_id is not None else 0
     backoff_time = 1
 
     while True:
-        highest_beatmapset_id += 1
+        beatmapset_id += 1
 
         try:
-            beatmapset = await osu_api_client.get_beatmapset(highest_beatmapset_id)
-        except aiohttp.client_exceptions.ClientResponseError as exc:
-            if exc.status == 404:
-                beatmapset = None
+            beatmapset = await osu_api_client.get_beatmapset(beatmapset_id)
+        except OsuAPIRequestError as exc:
+            if exc.status_code == 404:
+                return None
             else:
-                raise exc
+                raise
 
         if beatmapset:
             backoff_time = 1
 
-            beatmapset_data = slotted_obj_to_dict(beatmapset)
-            del beatmapset_data["beatmaps"]  # don't include beatmaps in the set index
-
             await elastic_client.create(
                 index=config.BEATMAPSETS_INDEX,
-                id=str(beatmapset.id),
+                id=str(beatmapset["id"]),
                 document={
-                    "data": (
-                        {k: getattr(beatmapset, k) for k in beatmapset.__slots__}
-                        | {"id": beatmapset.id}
-                    ),
+                    "data": beatmapset,
                     "created_at": datetime.datetime.now().isoformat(),
                     "updated_at": datetime.datetime.now().isoformat(),
                 },
             )
-            print("Indexed beatmapset", beatmapset.id)
+            print("Indexed beatmapset", beatmapset["id"])
         else:
-            backoff_time **= 2
+            if backoff_time < MAXIMUM_BACKOFF:
+                backoff_time **= 2
 
-            await asyncio.sleep(min(backoff_time, MAXIMUM_BACKOFF))
+            print(f"Backing off on beatmapset crawling - sleeping for {backoff_time}")
+            await asyncio.sleep(backoff_time)
 
 
 async def async_main() -> int:
     global osu_api_client, elastic_client
-    osu_api_client = osu.AsynchronousClient.from_client_credentials(
+    osu_api_client = OsuAPIClient(
         client_id=config.OSU_API_CLIENT_ID,
         client_secret=config.OSU_API_CLIENT_SECRET,
-        redirect_url=config.OSU_API_REDIRECT_URL,
-        request_wait_time=1,
-        limit_per_minute=60,
+        scope=config.OSU_API_SCOPE,
+        username=config.OSU_API_USERNAME,
+        password=config.OSU_API_PASSWORD,
+        request_interval=config.OSU_API_REQUEST_INTERVAL,
+        max_requests_per_minute=config.OSU_API_MAX_REQUESTS_PER_MINUTE,
     )
     elastic_client = AsyncElasticsearch(
         f"http://{config.ELASTIC_HOST}:{config.ELASTIC_PORT}",

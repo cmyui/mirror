@@ -17,7 +17,7 @@ async def get_from_checksum(checksum: str) -> dict[str, Any] | None:
     return beatmapset
 
 
-async def get_osz2_from_id(id: int) -> dict[str, Any] | None:
+async def get_osz2_from_id(id: int) -> bytes | None:
     """Fetch a beatmapset from it's id."""
     beatmapset = await beatmapsets.get_osz2_from_id(id)
     return beatmapset

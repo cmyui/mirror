@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from ast import literal_eval
-
 from starlette.config import Config
 
 config = Config(".env")
@@ -30,11 +28,17 @@ AMQP_PASS = config.get("AMQP_PASS")
 # osu! api
 OSU_API_CLIENT_ID = config.get("OSU_API_CLIENT_ID", cast=int)
 OSU_API_CLIENT_SECRET = config.get("OSU_API_CLIENT_SECRET")
-OSU_API_REDIRECT_URL = config.get("OSU_API_REDIRECT_URL")
+
+OSU_API_USERNAME = config.get("OSU_API_USERNAME")
+OSU_API_PASSWORD = config.get("OSU_API_PASSWORD")
+
+OSU_API_REQUEST_INTERVAL = config.get("OSU_API_REQUEST_INTERVAL", cast=float)
+OSU_API_MAX_REQUESTS_PER_MINUTE = config.get(
+    "OSU_API_MAX_REQUESTS_PER_MINUTE",
+    cast=int,
+)
+OSU_API_SCOPE = config.get("OSU_API_SCOPE")
 
 # settings
 MAX_DISK_USAGE_GB = config.get("MAX_DISK_USAGE_GB", cast=int)
 MAX_RAM_USAGE_GB = config.get("MAX_RAM_USAGE_GB", cast=int)
-
-# feature flags
-DOWNLOADS_ENABLED = config.get("DOWNLOADS_ENABLED", cast=bool)
