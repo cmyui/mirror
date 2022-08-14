@@ -16,6 +16,8 @@ LOG_LEVEL = config.get("LOG_LEVEL", cast=int)
 # elasticsearch
 ELASTIC_HOST = config.get("ELASTIC_HOST")
 ELASTIC_PORT = config.get("ELASTIC_PORT")
+ELASTIC_USER = config.get("ELASTIC_USER")
+ELASTIC_PASS = config.get("ELASTIC_PASS")
 BEATMAPS_INDEX = config.get("BEATMAPS_INDEX")
 BEATMAPSETS_INDEX = config.get("BEATMAPSETS_INDEX")
 
