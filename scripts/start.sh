@@ -20,6 +20,8 @@ case $APP_COMPONENT in
             --port 80 \
             --reload \
             --no-access-log \
+            --no-date-header \
+            --no-server-header \
             app.http_boot:service_api
         ;;
 esac

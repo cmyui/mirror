@@ -20,6 +20,8 @@ def main() -> int:
         host=config.APP_HOST,
         port=config.APP_PORT,
         reload=True,
+        server_header=False,
+        date_header=False,
     )
 
     return 0
