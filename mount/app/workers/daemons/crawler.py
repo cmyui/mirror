@@ -78,7 +78,7 @@ async def crawl_beatmapsets() -> None:
             beatmapset = await osu_api_client.get_beatmapset(beatmapset_id)
         except OsuAPIRequestError as exc:
             if exc.status_code == 404:
-                return None
+                continue
             else:
                 raise
 
