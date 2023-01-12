@@ -1,0 +1,56 @@
+version: "3.3"
+
+services:
+  ## shared/managed services
+
+  elasticsearch:
+    image: elasticsearch:8.1.3
+    environment:
+      - node.name=es01
+      - bootstrap.memory_lock=true
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - ./es_data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+
+  mirror:
+    image: mirror:latest
+    ports:
+      - 11000:80
+    environment:
+      - APP_ENV=${APP_ENV}
+      - APP_COMPONENT=${APP_COMPONENT}
+      - APP_HOST=${APP_HOST}
+      - APP_PORT=${APP_PORT}
+      - LOG_LEVEL=${LOG_LEVEL}
+      - ELASTIC_HOST=${ELASTIC_HOST}
+      - ELASTIC_PORT=${ELASTIC_PORT}
+      - ELASTIC_USER=${ELASTIC_USER}
+      - ELASTIC_PASS=${ELASTIC_PASS}
+      - BEATMAPS_INDEX=${BEATMAPS_INDEX}
+      - BEATMAPSETS_INDEX=${BEATMAPSETS_INDEX}
+      - OSU_API_CLIENT_ID=${OSU_API_CLIENT_ID}
+      - OSU_API_CLIENT_SECRET=${OSU_API_CLIENT_SECRET}
+      - OSU_API_USERNAME=${OSU_API_USERNAME}
+      - OSU_API_PASSWORD=${OSU_API_PASSWORD}
+      - OSU_API_REQUEST_INTERVAL=${OSU_API_REQUEST_INTERVAL}
+      - OSU_API_MAX_REQUESTS_PER_MINUTE=${OSU_API_MAX_REQUESTS_PER_MINUTE}
+      - OSU_API_SCOPE=${OSU_API_SCOPE}
+      - MAX_DISK_USAGE_GB=${MAX_DISK_USAGE_GB}
+      - MAX_RAM_USAGE_GB=${MAX_RAM_USAGE_GB}
+    volumes:
+      - ./mount:/srv/root
+      - ./scripts:/scripts
+    depends_on:
+      - elasticsearch
