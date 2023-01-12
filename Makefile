@@ -1,8 +1,8 @@
 build:
 	docker build -t mirror:latest .
 
-# run:
-# 	docker run --env-file=.env -it --rm -p 19500:80 mirror:dev
+run-api:
+	API_COMPONENT=api docker-compose up
 
-run:
-	docker-compose up
+run-crawler:
+	API_COMPONENT=crawler-daemon docker-compose up
