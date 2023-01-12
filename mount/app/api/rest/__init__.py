@@ -35,9 +35,8 @@ def init_events(app: FastAPI) -> None:
         # https://www.elastic.co/guide/en/elasticsearch/reference/7.17/security-minimal-setup.html
 
         services.elastic_client = AsyncElasticsearch(
-            f"https://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}",
+            f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}",
             basic_auth=(settings.ELASTIC_USER, settings.ELASTIC_PASS),
-            verify_certs=False,  # TODO: not this
         )
 
         # create elasticsearch indices if they don't already exist
