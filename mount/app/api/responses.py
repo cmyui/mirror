@@ -66,7 +66,10 @@ def osu_direct(beatmapsets: list[Mapping[str, Any]]) -> Response:
         resp_data.extend(beatmapset_string.encode())
         beatmapset_count += 1
 
-    return Response(content=f"{beatmapset_count}\n".encode() + bytes(resp_data), media_type="text/plain")
+    return Response(
+        content=f"{beatmapset_count}\n".encode() + bytes(resp_data),
+        media_type="text/plain",
+    )
 
 
 def error(status_code: int, message: str) -> ORJSONResponse:

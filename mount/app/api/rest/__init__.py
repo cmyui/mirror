@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import logging
 
-from app import settings
 from app import services
+from app import settings
 from app.api.rest import v1
 from app.services import OsuAPIClient
 from elasticsearch import AsyncElasticsearch

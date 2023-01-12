@@ -4,8 +4,8 @@ import datetime
 from typing import Any
 from typing import cast
 
-from app import settings
 from app import services
+from app import settings
 from app.enums.gamemodes import GameMode
 from app.enums.ranked_statuses import OsuAPIRankedStatus
 
