@@ -5,10 +5,10 @@ import logging
 
 import uvicorn
 
-from mount.app import config
+from mount.app import settings
 
 logging.basicConfig(
-    level=config.LOG_LEVEL,
+    level=settings.LOG_LEVEL,
     format="%(asctime)s %(message)s",
 )
 
@@ -17,8 +17,8 @@ def main() -> int:
     # run the server
     uvicorn.run(
         "mount.api.rest.init_api:asgi_app",
-        host=config.APP_HOST,
-        port=config.APP_PORT,
+        host=settings.APP_HOST,
+        port=settings.APP_PORT,
         reload=True,
         server_header=False,
         date_header=False,

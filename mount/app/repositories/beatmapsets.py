@@ -4,7 +4,7 @@ import datetime
 from typing import Any
 from typing import cast
 
-from app import config
+from app import settings
 from app import services
 from app.enums.gamemodes import GameMode
 from app.enums.ranked_statuses import OsuAPIRankedStatus
@@ -26,11 +26,11 @@ async def get_from_id(id: int) -> dict[str, Any] | None:
 
     # fetch the beatmap set from elasticsearch if possible
     if await services.elastic_client.exists(
-        index=config.BEATMAPSETS_INDEX,
+        index=settings.BEATMAPSETS_INDEX,
         id=str(id),
     ):
         response = await services.elastic_client.get(
-            index=config.BEATMAPSETS_INDEX,
+            index=settings.BEATMAPSETS_INDEX,
             id=str(id),
         )
 
@@ -51,7 +51,7 @@ async def get_from_id(id: int) -> dict[str, Any] | None:
             # TODO: use bulk query
             for beatmap_data in beatmapset["beatmaps"]:
                 await services.elastic_client.index(
-                    index=config.BEATMAPS_INDEX,
+                    index=settings.BEATMAPS_INDEX,
                     id=str(beatmap_data["id"]),
                     document={
                         "data": beatmap_data,
@@ -63,7 +63,7 @@ async def get_from_id(id: int) -> dict[str, Any] | None:
 
             # save the beatmap set into our elastic index
             await services.elastic_client.create(
-                index=config.BEATMAPSETS_INDEX,
+                index=settings.BEATMAPSETS_INDEX,
                 id=str(id),
                 document={
                     "data": beatmapset,
@@ -130,7 +130,7 @@ async def search(
         query_conditions.append({"term": {"data.beatmaps.ranked": status}})
 
     elastic_response = await services.elastic_client.search(
-        index=config.BEATMAPSETS_INDEX,
+        index=settings.BEATMAPSETS_INDEX,
         query={"bool": {"must": query_conditions}},
         size=amount,
         from_=offset,

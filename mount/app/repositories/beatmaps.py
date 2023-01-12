@@ -3,7 +3,7 @@ from __future__ import annotations
 import datetime
 from typing import Any
 
-from app import config
+from app import settings
 from app import services
 
 
@@ -24,11 +24,11 @@ async def get_from_id(id: int) -> dict[str, Any] | None:
 
     # fetch the beatmap from elasticsearch if possible
     if await services.elastic_client.exists(
-        index=config.BEATMAPS_INDEX,
+        index=settings.BEATMAPS_INDEX,
         id=str(id),
     ):
         response = await services.elastic_client.get_source(
-            index=config.BEATMAPS_INDEX,
+            index=settings.BEATMAPS_INDEX,
             id=str(id),
         )
 
@@ -45,7 +45,7 @@ async def get_from_id(id: int) -> dict[str, Any] | None:
         else:
             # save the beatmap into our elasticsearch index
             await services.elastic_client.create(
-                index=config.BEATMAPS_INDEX,
+                index=settings.BEATMAPS_INDEX,
                 id=str(id),
                 document={
                     "data": beatmap_data,

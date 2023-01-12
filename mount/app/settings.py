@@ -21,12 +21,6 @@ ELASTIC_PASS = config.get("ELASTIC_PASS")
 BEATMAPS_INDEX = config.get("BEATMAPS_INDEX")
 BEATMAPSETS_INDEX = config.get("BEATMAPSETS_INDEX")
 
-# rabbitmq
-AMQP_HOST = config.get("AMQP_HOST")
-AMQP_PORT = config.get("AMQP_PORT", cast=int)
-AMQP_USER = config.get("AMQP_USER")
-AMQP_PASS = config.get("AMQP_PASS")
-
 # osu! api
 OSU_API_CLIENT_ID = config.get("OSU_API_CLIENT_ID", cast=int)
 OSU_API_CLIENT_SECRET = config.get("OSU_API_CLIENT_SECRET")

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from app import config
+from app import settings
 from app import services
 from app.api.rest import v1
 from app.services import OsuAPIClient
@@ -35,24 +35,24 @@ def init_events(app: FastAPI) -> None:
         # https://www.elastic.co/guide/en/elasticsearch/reference/7.17/security-minimal-setup.html
 
         services.elastic_client = AsyncElasticsearch(
-            f"https://{config.ELASTIC_HOST}:{config.ELASTIC_PORT}",
-            basic_auth=(config.ELASTIC_USER, config.ELASTIC_PASS),
+            f"https://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}",
+            basic_auth=(settings.ELASTIC_USER, settings.ELASTIC_PASS),
             verify_certs=False,  # TODO: not this
         )
 
         # create elasticsearch indices if they don't already exist
-        for index in (config.BEATMAPS_INDEX, config.BEATMAPSETS_INDEX):
+        for index in (settings.BEATMAPS_INDEX, settings.BEATMAPSETS_INDEX):
             if not await services.elastic_client.indices.exists(index=index):
                 await services.elastic_client.indices.create(index=index)
 
         services.osu_api_client = OsuAPIClient(
-            client_id=config.OSU_API_CLIENT_ID,
-            client_secret=config.OSU_API_CLIENT_SECRET,
-            scope=config.OSU_API_SCOPE,
-            username=config.OSU_API_USERNAME,
-            password=config.OSU_API_PASSWORD,
-            request_interval=config.OSU_API_REQUEST_INTERVAL,
-            max_requests_per_minute=config.OSU_API_MAX_REQUESTS_PER_MINUTE,
+            client_id=settings.OSU_API_CLIENT_ID,
+            client_secret=settings.OSU_API_CLIENT_SECRET,
+            scope=settings.OSU_API_SCOPE,
+            username=settings.OSU_API_USERNAME,
+            password=settings.OSU_API_PASSWORD,
+            request_interval=settings.OSU_API_REQUEST_INTERVAL,
+            max_requests_per_minute=settings.OSU_API_MAX_REQUESTS_PER_MINUTE,
         )
 
     @app.on_event("shutdown")
@@ -75,7 +75,7 @@ def init_api() -> FastAPI:
 
     # init logging
     logging.basicConfig(
-        level=config.LOG_LEVEL,
+        level=settings.LOG_LEVEL,
         format="%(asctime)s %(message)s",
     )
 

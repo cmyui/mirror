@@ -4,7 +4,7 @@ from __future__ import annotations
 import asyncio
 import datetime
 
-from app import config
+from app import settings
 from app.services import OsuAPIClient
 from app.services import OsuAPIRequestError
 from elasticsearch import AsyncElasticsearch
@@ -15,7 +15,7 @@ MAXIMUM_BACKOFF = 32  # seconds
 async def crawl_beatmaps() -> None:
     elastic_response = await elastic_client.search(
         aggs={"max_id": {"max": {"field": "data.id"}}},
-        index=config.BEATMAPS_INDEX,
+        index=settings.BEATMAPS_INDEX,
     )
     elastic_highest_id = elastic_response["aggregations"]["max_id"]["value"]
     highest_beatmap_id = (
@@ -40,7 +40,7 @@ async def crawl_beatmaps() -> None:
                 operations.append(
                     {
                         "create": {
-                            "_index": config.BEATMAPS_INDEX,
+                            "_index": settings.BEATMAPS_INDEX,
                             "_id": str(beatmap["id"]),
                         },
                     },
@@ -65,7 +65,7 @@ async def crawl_beatmaps() -> None:
 async def crawl_beatmapsets() -> None:
     elastic_response = await elastic_client.search(
         aggs={"max_id": {"max": {"field": "data.id"}}},
-        index=config.BEATMAPSETS_INDEX,
+        index=settings.BEATMAPSETS_INDEX,
     )
     elastic_highest_id = elastic_response["aggregations"]["max_id"]["value"]
     beatmapset_id = int(elastic_highest_id) if elastic_highest_id is not None else 0
@@ -86,7 +86,7 @@ async def crawl_beatmapsets() -> None:
             backoff_time = 1
 
             await elastic_client.create(
-                index=config.BEATMAPSETS_INDEX,
+                index=settings.BEATMAPSETS_INDEX,
                 id=str(beatmapset["id"]),
                 document={
                     "data": beatmapset,
@@ -106,20 +106,20 @@ async def crawl_beatmapsets() -> None:
 async def async_main() -> int:
     global osu_api_client, elastic_client
     osu_api_client = OsuAPIClient(
-        client_id=config.OSU_API_CLIENT_ID,
-        client_secret=config.OSU_API_CLIENT_SECRET,
-        scope=config.OSU_API_SCOPE,
-        username=config.OSU_API_USERNAME,
-        password=config.OSU_API_PASSWORD,
-        request_interval=config.OSU_API_REQUEST_INTERVAL,
-        max_requests_per_minute=config.OSU_API_MAX_REQUESTS_PER_MINUTE,
+        client_id=settings.OSU_API_CLIENT_ID,
+        client_secret=settings.OSU_API_CLIENT_SECRET,
+        scope=settings.OSU_API_SCOPE,
+        username=settings.OSU_API_USERNAME,
+        password=settings.OSU_API_PASSWORD,
+        request_interval=settings.OSU_API_REQUEST_INTERVAL,
+        max_requests_per_minute=settings.OSU_API_MAX_REQUESTS_PER_MINUTE,
     )
     elastic_client = AsyncElasticsearch(
-        f"http://{config.ELASTIC_HOST}:{config.ELASTIC_PORT}",
+        f"http://{settings.ELASTIC_HOST}:{settings.ELASTIC_PORT}",
     )
 
     # create elasticsearch indices if they don't already exist
-    for index in (config.BEATMAPS_INDEX, config.BEATMAPSETS_INDEX):
+    for index in (settings.BEATMAPS_INDEX, settings.BEATMAPSETS_INDEX):
         if not await elastic_client.indices.exists(index=index):
             await elastic_client.indices.create(index=index)
 
