@@ -57,6 +57,23 @@ def should_reindex_beatmapset(
     return last_updated <= (datetime.now() - update_interval)
 
 
+async def get_last_indexed_times(
+    beatmapset_ids: list[str],
+) -> dict[int, datetime | None]:
+    elastic_response = await elastic_client.mget(
+        index=settings.BEATMAPSETS_INDEX,
+        ids=beatmapset_ids,
+    )
+
+    last_updates = {
+        int(hit["_id"]): datetime.fromisoformat(hit["_source"]["updated_at"])
+        if hit["found"]
+        else None
+        for hit in elastic_response["docs"]
+    }
+    return last_updates
+
+
 async def crawl_beatmapsets() -> None:
     saved_cursor: bytes | None = await redis_client.get("beatmapsets_cursor")
     if saved_cursor is not None:
@@ -68,7 +85,7 @@ async def crawl_beatmapsets() -> None:
 
     while cursor is not None:
         try:
-            result = await osu_api_client.search(
+            osuapi_result = await osu_api_client.search(
                 query=None,
                 general=None,
                 mode=None,
@@ -82,8 +99,10 @@ async def crawl_beatmapsets() -> None:
                 sort="updated_asc",
                 cursor_string=stringify_cursor(cursor) if cursor else None,
             )
-            if result["error"] is not None:
-                raise Exception("Error while crawling beatmapsets: " + result["error"])
+            if osuapi_result["error"] is not None:
+                raise Exception(
+                    "Error while crawling beatmapsets: " + osuapi_result["error"],
+                )
         except Exception as exc:
             logger.error("Search call to osu!api failed: ", error=exc)
             logger.error("Stack trace: ", error=traceback.format_exc())
@@ -100,22 +119,22 @@ async def crawl_beatmapsets() -> None:
         crawl_time = datetime.now()
         operations = []
 
-        for beatmapset in result["beatmapsets"]:
+        last_indexed_times = await get_last_indexed_times(
+            beatmapset_ids=[
+                beatmapset["id"] for beatmapset in osuapi_result["beatmapsets"]
+            ],
+        )
+
+        for beatmapset in osuapi_result["beatmapsets"]:
             # fetch last time this beatmapset was updated
-            try:
-                elastic_response = await elastic_client.get(
-                    index=settings.BEATMAPSETS_INDEX,
-                    id=beatmapset["id"],
-                )
-            except elasticsearch.NotFoundError:
-                should_index_beatmapset = True
-            else:
+            last_updated = last_indexed_times[beatmapset["id"]]
+            if last_updated is not None:
                 should_index_beatmapset = should_reindex_beatmapset(
                     beatmapset=beatmapset,
-                    last_updated=datetime.fromisoformat(
-                        elastic_response["_source"]["updated_at"],
-                    ),
+                    last_updated=last_updated,
                 )
+            else:
+                should_index_beatmapset = True
 
             if not should_index_beatmapset:
                 logger.info(
@@ -170,10 +189,10 @@ async def crawl_beatmapsets() -> None:
         if operations:
             await elastic_client.bulk(operations=operations)
 
-        cursor = result["cursor"]
+        cursor = osuapi_result["cursor"]
         if cursor is None:
             print("Finished crawling beatmapsets")
-            print(result)
+            print(osuapi_result)
             return
 
         await redis_client.set("beatmapsets_cursor", json.dumps(cursor))
