@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import logging
-
 from app import services
 from app import settings
 from app.api.rest import v1
@@ -68,12 +66,6 @@ def init_endpoints(app: FastAPI) -> None:
 def init_api() -> FastAPI:
     """Initialize the API."""
     app = FastAPI()
-
-    # init logging
-    logging.basicConfig(
-        level=settings.LOG_LEVEL,
-        format="%(asctime)s %(message)s",
-    )
 
     init_middlewares(app)
     init_exception_handlers(app)

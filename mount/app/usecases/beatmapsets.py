@@ -31,5 +31,11 @@ async def search(
     status: int,
 ) -> list[dict[str, Any]]:
     """Search for beatmapsets."""
-    search_results = await beatmapsets.search(query, amount, offset, mode, status)
+    search_results = await beatmapsets.search(
+        query=query,
+        amount=amount,
+        offset=offset,
+        mode=mode,
+        status=status,
+    )
     return search_results

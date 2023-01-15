@@ -156,21 +156,124 @@ class OsuAPIClient:
     async def get_beatmapset(self, id: int) -> dict[str, Any]:
         """Fetch a beatmap set's metadata from it's id."""
         url = f"https://osu.ppy.sh/api/v2/beatmapsets/{id}"
-        return await self.request("GET", url)
+        return await self.request(
+            method="GET",
+            url=url,
+        )
 
     async def get_beatmap(self, id: int) -> dict[str, Any]:
         """Fetch a beatmap's metadata from it's id."""
         url = f"https://osu.ppy.sh/api/v2/beatmaps/{id}"
-        return await self.request("GET", url)
+        return await self.request(
+            method="GET",
+            url=url,
+        )
 
     async def get_beatmaps(self, ids: Sequence[int]) -> list[dict[str, Any]]:
         """Fetch beatmaps' metadata from their ids."""
         url = f"https://osu.ppy.sh/api/v2/beatmaps"
-        params = {"ids[]": [str(id) for id in ids]}
-        return (await self.request("GET", url, params))["beatmaps"]
+        params = {
+            "ids[]": [str(id) for id in ids],
+        }
+        return (
+            await self.request(
+                method="GET",
+                url=url,
+                params=params,
+            )
+        )["beatmaps"]
 
     async def get_beatmap_osz2(self, id: int) -> bytes:
         """Fetch a beatmapset's osu! file from it's id."""
+        raise NotImplementedError("not supported; need to proxy another mirror")
+
         url = f"https://osu.ppy.sh/api/v2/beatmapsets/{id}/download"
         headers = {"User-Agent": "osu-framework"}
-        return await self.request("GET", url, headers=headers)
+        return await self.request(
+            method="GET",
+            url=url,
+            headers=headers,
+        )
+
+    async def search(
+        self,
+        query: str | None = None,
+        general: Sequence[
+            Literal[
+                "featured_artists",
+                "spotlights",
+                "follows",
+                "converts",
+                "recommended",
+            ]
+        ]
+        | None = None,
+        mode: int | None = None,  # 0, 1, 2, 3
+        section: Literal[
+            "any",
+            "ranked",
+            "qualified",
+            "loved",
+            "favourites",
+            "pending",
+            "wip",
+            "graveyard",
+            "mine",
+        ]
+        | None = None,
+        include_nsfw: bool = True,
+        genre: int | None = None,  # 0 - 14
+        language: int | None = None,  # 0 - 14
+        extra: Sequence[Literal["video", "storyboard"]] | None = None,
+        rank_achieved: Sequence[Literal["XH", "X", "SH", "S", "A", "B", "C", "D"]]
+        | None = None,
+        played: Literal["played", "unplayed"] | None = None,
+        sort: Literal[
+            "title_asc",
+            "title_desc",
+            "artist_asc",
+            "artist_desc",
+            "difficulty_asc",
+            "difficulty_desc",
+            "updated_asc",
+            "updated_desc",
+            "ranked_asc",
+            "ranked_desc",
+            "rating_asc",
+            "rating_desc",
+            "plays_asc",
+            "plays_desc",
+            "favourites_asc",
+            "favourites_desc",
+            "relevance_asc",
+            "relevance_desc",
+        ]
+        | None = None,
+        cursor_string: str | None = None,
+    ) -> dict[str, Any]:
+        url = f"https://osu.ppy.sh/api/v2/beatmapsets/search"
+        headers = {
+            "User-Agent": "osu-framework",
+        }
+        params = {
+            "q": query if query is not None else "",
+            "c": ".".join(general) if general is not None else "",
+            "m": mode if mode is not None else "",
+            "s": section if section is not None else "",
+            "nsfw": "true" if include_nsfw else "false",
+            "g": genre if genre is not None else "",
+            "l": language if language is not None else "",
+            "e": ".".join(extra) if extra is not None else "",
+            "r": ".".join(rank_achieved) if rank_achieved is not None else "",
+            "played": played if played is not None else "",
+            "sort": sort if sort is not None else "",
+        }
+        if cursor_string is not None:
+            params["cursor_string"] = cursor_string
+
+        return await self.request(
+            method="GET",
+            url=url,
+            params=params,
+            headers=headers,
+        )

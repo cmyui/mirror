@@ -20,13 +20,19 @@ async def get_beatmapset_search(
     query: str | None = None,
     amount: int = Query(100, ge=1, le=100),
     offset: int = Query(0, ge=0),
-    status: OsuAPIRankedStatus = OsuAPIRankedStatus.RANKED,
-    mode: GameMode = GameMode.OSU,
+    status: OsuAPIRankedStatus = OsuAPIRankedStatus.ALL,
+    mode: GameMode = GameMode.ALL,
     osu_direct: bool = False,
 ):
-    search_results = await beatmapsets.search(query, amount, offset, mode, status)
+    search_results = await beatmapsets.search(
+        query=query,
+        amount=amount,
+        offset=offset,
+        mode=mode,
+        status=status,
+    )
     if osu_direct:
-        return responses.osu_direct(search_results)  # type: ignore
+        return responses.osu_direct(search_results)
 
     return responses.success(search_results)
 

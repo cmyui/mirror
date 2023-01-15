@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 from typing import Mapping
+from typing import Sequence
 
 from fastapi import status
 from fastapi.responses import ORJSONResponse
@@ -39,7 +40,7 @@ def _format_beatmap_set_osu_direct(beatmap_set_data: Mapping[str, Any]) -> bytes
     )
 
 
-def osu_direct(beatmapsets: list[Mapping[str, Any]]) -> Response:
+def osu_direct(beatmapsets: Sequence[Mapping[str, Any]]) -> Response:
     # special case - return binary data
     resp_data = bytearray()
     beatmapset_count = 0

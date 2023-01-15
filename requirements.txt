@@ -4,4 +4,5 @@ fastapi
 httpx
 orjson
 starlette_exporter
+structlog
 uvicorn[standard]

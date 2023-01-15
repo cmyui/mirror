@@ -21,6 +21,10 @@ ELASTIC_PASS = config.get("ELASTIC_PASS")
 BEATMAPS_INDEX = config.get("BEATMAPS_INDEX")
 BEATMAPSETS_INDEX = config.get("BEATMAPSETS_INDEX")
 
+# redis
+REDIS_HOST = config.get("REDIS_HOST")
+REDIS_PORT = config.get("REDIS_PORT", cast=int)
+
 # osu! api
 OSU_API_CLIENT_ID = config.get("OSU_API_CLIENT_ID", cast=int)
 OSU_API_CLIENT_SECRET = config.get("OSU_API_CLIENT_SECRET")
