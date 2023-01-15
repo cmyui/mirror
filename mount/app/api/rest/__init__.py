@@ -47,9 +47,6 @@ def init_events(app: FastAPI) -> None:
         services.osu_api_client = OsuAPIClient(
             client_id=settings.OSU_API_CLIENT_ID,
             client_secret=settings.OSU_API_CLIENT_SECRET,
-            scope=settings.OSU_API_SCOPE,
-            username=settings.OSU_API_USERNAME,
-            password=settings.OSU_API_PASSWORD,
             request_interval=settings.OSU_API_REQUEST_INTERVAL,
             max_requests_per_minute=settings.OSU_API_MAX_REQUESTS_PER_MINUTE,
         )

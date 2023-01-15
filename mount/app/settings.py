@@ -25,15 +25,11 @@ BEATMAPSETS_INDEX = config.get("BEATMAPSETS_INDEX")
 OSU_API_CLIENT_ID = config.get("OSU_API_CLIENT_ID", cast=int)
 OSU_API_CLIENT_SECRET = config.get("OSU_API_CLIENT_SECRET")
 
-OSU_API_USERNAME = config.get("OSU_API_USERNAME")
-OSU_API_PASSWORD = config.get("OSU_API_PASSWORD")
-
 OSU_API_REQUEST_INTERVAL = config.get("OSU_API_REQUEST_INTERVAL", cast=float)
 OSU_API_MAX_REQUESTS_PER_MINUTE = config.get(
     "OSU_API_MAX_REQUESTS_PER_MINUTE",
     cast=int,
 )
-OSU_API_SCOPE = config.get("OSU_API_SCOPE")
 
 # settings
 MAX_DISK_USAGE_GB = config.get("MAX_DISK_USAGE_GB", cast=int)

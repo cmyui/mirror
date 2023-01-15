@@ -27,18 +27,11 @@ class OsuAPIClient:
         self,
         client_id: int,
         client_secret: str,
-        scope: str,  # TODO: sequence
-        username: str,
-        password: str,
         request_interval: float = 1.0,
         max_requests_per_minute: int = 60,
     ) -> None:
         self.client_id = client_id
         self.client_secret = client_secret
-        self.scope = scope
-
-        self.username = username
-        self.password = password
 
         self.request_interval_time = request_interval
         self._last_request_time = 0.0
@@ -47,7 +40,8 @@ class OsuAPIClient:
         self._requests_this_minute = 0
         self._minute_start_time = 0.0
 
-        self._http_client = httpx.AsyncClient()
+        # NOTE: we disable timeouts here, as we trust the osu!api to be reliable
+        self._http_client = httpx.AsyncClient(timeout=None)
         self._auth_data = {"token": None, "timeout": 0}
 
     async def close(self) -> None:
@@ -68,14 +62,11 @@ class OsuAPIClient:
         """Request authorization from the osu!api."""
         response = await self._http_client.post(
             url=f"https://osu.ppy.sh/oauth/token",
-            headers={"User-Agent": "osu!"},
             data={
-                "username": self.username,
-                "password": self.password,
-                "grant_type": "password",  # TODO: support for others?
                 "client_id": self.client_id,
                 "client_secret": self.client_secret,
-                "scope": self.scope,
+                "grant_type": "client_credentials",
+                "scope": "public",  # TODO: support for others?
             },
         )
         if response.status_code != 200:
