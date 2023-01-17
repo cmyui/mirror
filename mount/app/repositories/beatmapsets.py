@@ -105,10 +105,10 @@ async def search(
     status: int,
 ) -> list[dict[str, Any]]:
     """Search for beatmapsets."""
-    set_query_conditions: list[dict[str, Any]] = []
+    query_conditions: list[dict[str, Any]] = []
 
     if query is not None:
-        set_query_conditions.append(
+        query_conditions.append(
             {
                 "simple_query_string": {
                     "query": query,
@@ -124,50 +124,17 @@ async def search(
             },
         )
 
-    if status != OsuAPIRankedStatus.ALL:
-        set_query_conditions.append({"term": {"data.ranked": int(status)}})
+    if mode != GameMode.ALL:
+        query_conditions.append({"term": {"data.beatmaps.mode_int": int(mode)}})
 
-    elastic_sets_response = await services.elastic_client.search(
+    if status != OsuAPIRankedStatus.ALL:
+        query_conditions.append({"term": {"data.beatmaps.ranked": int(status)}})
+
+    elastic_response = await services.elastic_client.search(
         index=settings.BEATMAPSETS_INDEX,
-        query={"bool": {"must": set_query_conditions}},
+        query={"bool": {"must": query_conditions}},
         size=amount,
         from_=offset,
     )
-    sets_data = [
-        hit["_source"]["data"] for hit in elastic_sets_response["hits"]["hits"]
-    ]
 
-    # fetch all the beatmaps for the beatmap sets
-    map_query_conditions = []
-
-    map_query_conditions.append(
-        {
-            "terms": {
-                "data.beatmapset_id": [
-                    hit["_source"]["data"]["id"]
-                    for hit in elastic_sets_response["hits"]["hits"]
-                ],
-            },
-        },
-    )
-
-    # TODO: how can we do this?
-    # if mode != GameMode.ALL:
-    #     map_query_conditions.append({"term": {"data.mode_int": int(mode)}})
-
-    elastic_maps_response = await services.elastic_client.search(
-        index=settings.BEATMAPS_INDEX,
-        query={"bool": {"must": map_query_conditions}},
-        size=10000,
-        # from_=offset,
-    )
-    maps_data_per_set = defaultdict(list)
-    for hit in elastic_maps_response["hits"]["hits"]:
-        maps_data_per_set[hit["_source"]["data"]["beatmapset_id"]].append(
-            hit["_source"]["data"],
-        )
-
-    for set_data in sets_data:
-        set_data["beatmaps"] = maps_data_per_set[set_data["id"]]
-
-    return sets_data
+    return [hit["_source"]["data"] for hit in elastic_response["hits"]["hits"]]

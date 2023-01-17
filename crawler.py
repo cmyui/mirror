@@ -148,9 +148,6 @@ async def crawl_beatmapsets() -> None:
                 beatmapset_id=beatmapset["id"],
             )
 
-            # index beatmaps separately from beatmapsets
-            beatmaps = beatmapset.pop("beatmaps")
-
             # add sets to sets index
             operations.append(
                 {
@@ -169,7 +166,7 @@ async def crawl_beatmapsets() -> None:
             )
 
             # add maps to maps index
-            for beatmap in beatmaps:
+            for beatmap in beatmapset["beatmaps"]:
                 operations.append(
                     {
                         "create": {
