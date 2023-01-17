@@ -30,7 +30,7 @@ def stringify_cursor(cursor: dict[str, Any]) -> str:
     ).decode()
 
 
-def should_reindex_beatmapset(
+def should_reindex_existing_documents(
     beatmapset: Mapping[str, Any],
     last_updated: datetime,
 ) -> bool:
@@ -129,7 +129,7 @@ async def crawl_beatmapsets() -> None:
             # fetch last time this beatmapset was updated
             last_updated = last_indexed_times[beatmapset["id"]]
             if last_updated is not None:
-                should_index_beatmapset = should_reindex_beatmapset(
+                should_index_beatmapset = should_reindex_existing_documents(
                     beatmapset=beatmapset,
                     last_updated=last_updated,
                 )
