@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from app.api import responses
-from app.enums.gamemodes import GameMode
-from app.enums.ranked_statuses import OsuAPIRankedStatus
+from app.models.gamemodes import GameMode
+from app.models.ranked_statuses import OsuAPIRankedStatus
 from app.usecases import beatmapsets
 from fastapi import APIRouter
 from fastapi.param_functions import Query
@@ -26,10 +26,10 @@ async def get_beatmapset_search(
 ):
     search_results = await beatmapsets.search(
         query=query,
-        amount=amount,
-        offset=offset,
         mode=mode,
         status=status,
+        amount=amount,
+        offset=offset,
     )
     if osu_direct:
         return responses.osu_direct(search_results)

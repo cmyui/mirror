@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import atexit
 
-from app import logger
-from app import settings
 from app.api.rest import init_api
+from app.common import logger
+from app.common import settings
 
 logger.overwrite_exception_hook()
 atexit.register(logger.restore_exception_hook)

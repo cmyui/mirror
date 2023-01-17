@@ -16,28 +16,14 @@ def success(data: Any) -> ORJSONResponse:
     )
 
 
-def _format_beatmap_set_osu_direct(beatmap_set_data: Mapping[str, Any]) -> bytes:
-    difficulties_string = ",".join(
-        [
-            (
-                "[{difficulty_rating:.2f}⭐] {version} "
-                "{{cs: {cs} / od: {accuracy} / ar: {ar} / hp: {drain}}}@{mode_int}"
-            ).format(**beatmap)
-            # TODO: sort beatmaps by difficulty?
-            for beatmap in beatmap_set_data["beatmaps"]
-        ],
+def error(status_code: int, message: str) -> ORJSONResponse:
+    return ORJSONResponse(
+        content={"status": "error", "message": message},
+        status_code=status_code,
     )
 
-    return (
-        (
-            "{id}.osz|{artist}|{title}|{creator}|"
-            "{ranked}|10.0|{last_updated}|{id}|"
-            "0|{video}|0|0|0|{difficulties_string}\n"  # 0s are threadid, has_story,
-            # filesize, filesize_novid.
-        )
-        .format(**beatmap_set_data, difficulties_string=difficulties_string)
-        .encode()
-    )
+
+# special cases
 
 
 def osu_direct(beatmapsets: Sequence[Mapping[str, Any]]) -> Response:
@@ -56,9 +42,12 @@ def osu_direct(beatmapsets: Sequence[Mapping[str, Any]]) -> Response:
                 for beatmap in beatmapset_data["beatmaps"]
             ],
         )
-
+        print(beatmapset_data)
         beatmapset_string = (
             "{id}.osz|{artist}|{title}|{creator}|"
+            # TODO: the 10.0 is beatmap rating, which we don't have yet.
+            # this is what creates the bar in osu!direct
+            # https://i.cmyui.xyz/mt693h9hjl6km4hCgw.png
             "{ranked}|10.0|{last_updated}|{id}|"
             "0|{video}|0|0|0|{difficulties_string}\n"  # 0s are threadid, has_story,
             # filesize, filesize_novid.
@@ -70,11 +59,4 @@ def osu_direct(beatmapsets: Sequence[Mapping[str, Any]]) -> Response:
     return Response(
         content=f"{beatmapset_count}\n".encode() + bytes(resp_data),
         media_type="text/plain",
-    )
-
-
-def error(status_code: int, message: str) -> ORJSONResponse:
-    return ORJSONResponse(
-        content={"status": "error", "message": message},
-        status_code=status_code,
     )

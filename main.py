@@ -5,7 +5,7 @@ import logging
 
 import uvicorn
 
-from mount.app import settings
+from mount.app.common import settings
 
 logging.basicConfig(
     level=settings.LOG_LEVEL,

@@ -3,8 +3,8 @@ from __future__ import annotations
 import datetime
 from typing import Any
 
-from app import services
-from app import settings
+from app.common import services
+from app.common import settings
 
 
 # TODO: typeddict model for mapping?

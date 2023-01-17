@@ -13,6 +13,7 @@ from elasticsearch import AsyncElasticsearch
 
 elastic_client: AsyncElasticsearch
 osu_api_client: OsuAPIClient
+http_client: httpx.AsyncClient
 
 
 class OsuAPIRequestError(Exception):

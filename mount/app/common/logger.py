@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging as stdlib_logging
 import os
 import sys
+import traceback
 from contextvars import ContextVar
 from types import TracebackType
 from typing import Any
@@ -108,9 +109,7 @@ def overwrite_exception_hook() -> None:
     ) -> None:
         get_logger().error(
             "Uncaught exception",
-            exc_type=exc_type,
-            exc_value=exc_value,
-            exc_traceback=exc_traceback,
+            traceback=traceback.format_exception(exc_value),
         )
 
     global _default_excepthook
@@ -120,4 +119,6 @@ def overwrite_exception_hook() -> None:
 
 
 def restore_exception_hook() -> None:
+    global _default_excepthook
     sys.excepthook = _default_excepthook
+    del _default_excepthook

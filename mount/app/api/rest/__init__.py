@@ -1,9 +1,10 @@
 from __future__ import annotations
 
-from app import services
-from app import settings
+import httpx
 from app.api.rest import v1
-from app.services import OsuAPIClient
+from app.common import services
+from app.common import settings
+from app.common.services import OsuAPIClient
 from elasticsearch import AsyncElasticsearch
 from fastapi.applications import FastAPI
 from starlette_exporter import handle_metrics
@@ -48,6 +49,8 @@ def init_events(app: FastAPI) -> None:
             request_interval=settings.OSU_API_REQUEST_INTERVAL,
             max_requests_per_minute=settings.OSU_API_MAX_REQUESTS_PER_MINUTE,
         )
+
+        services.http_client = httpx.AsyncClient()
 
     @app.on_event("shutdown")
     async def on_shutdown() -> None:

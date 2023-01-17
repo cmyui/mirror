@@ -12,10 +12,9 @@ from typing import Mapping
 
 import aioredis
 import elasticsearch
-
-from mount.app import logger
-from mount.app import settings
-from mount.app.services import OsuAPIClient
+from app.common import logger
+from app.common import settings
+from app.common.services import OsuAPIClient
 
 
 MAXIMUM_BACKOFF = 32
@@ -228,8 +227,8 @@ async def async_main() -> int:
 
 
 if __name__ == "__main__":
-    # logger.overwrite_exception_hook()
-    # atexit.register(logger.restore_exception_hook)
+    logger.overwrite_exception_hook()
+    atexit.register(logger.restore_exception_hook)
 
     logger.configure_logging(
         app_env=settings.APP_ENV,
